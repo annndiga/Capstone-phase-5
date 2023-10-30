@@ -22,24 +22,6 @@ migrate = Migrate(app, db)
 
 
 
-
-
 if __name__ == '__main__':
     app.run(debug=True)
 
-# from flask import Flask
-# from flask_sqlalchemy import SQLAlchemy
-# from flask_migrate import Migrate
-# from model.event import Event
-# from model.eventcalendar import EventCalendar
-# from model.ticket import Ticket
-# from model.user import User
-# from model.role import Role
-
-# app = Flask(__name)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# db = SQLAlchemy(app)  # Initialize the SQLAlchemy extension
-
-# migrate = Migrate(app, db)
