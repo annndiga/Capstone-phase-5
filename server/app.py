@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify,  Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from datetime import datetime
+from datetime import datetime, date
 from config import db
 from model.event import Event
 from model.eventcalendar import EventCalendar
@@ -24,7 +24,7 @@ migrate = Migrate(app, db)
 
 jwt = JWTManager(app)
 
-
+ticket_bp = Blueprint('ticket', __name__)
 
 @app.route('/')
 def hello():
@@ -185,6 +185,138 @@ def create_event():
         return jsonify({'message': 'Event created successfully'}), 201
     else:
         return jsonify({'error': 'Invalid data for event creation'}), 400
+
+
+@app.route('/search_events', methods=['GET'])
+def search_events():
+    
+    event_name = request.args.get('event_name')
+    category = request.args.get('category')
+    location = request.args.get('location')
+
+    
+    base_query = Event.query
+
+    
+    if event_name:
+        base_query = base_query.filter(Event.event_name.ilike(f"%{event_name}%"))
+
+    if category:
+        base_query = base_query.filter(Event.category.ilike(f"%{category}%"))
+
+    if location:
+        base_query = base_query.filter(Event.location.ilike(f"%{location}%"))
+
+    
+    matching_events = base_query.all()
+
+   
+    serialized_events = [{
+        'event_name': event.event_name,
+        'event_description': event.event_description,
+        'start_date': event.start_date.strftime('%Y-%m-%d'),
+        'end_date': event.end_date.strftime('%Y-%m-%d'),
+        'location': event.location,
+        'category': event.category,
+        'total_tickets_available': event.total_tickets_available,
+        'early_booking_price': float(event.early_booking_price),
+        'mvp_price': float(event.mvp_price),
+        'regular_price': float(event.regular_price)
+    } for event in matching_events]
+
+    return jsonify({'events': serialized_events})
+
+@app.route('/add_to_calendar', methods=['POST'])
+def add_to_calendar():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"message": "Invalid data"}), 400
+
+    user_id = data.get('user_id')  
+    event_id = data.get('event_id') 
+
+    
+    user = User.query.get(user_id)
+    event = Event.query.get(event_id)
+
+    if not user or not event:
+        return jsonify({"message": "User or event not found"}), 404
+
+    
+    event_calendar = EventCalendar(event_id=event_id, customer_id=user_id, is_added=True)
+
+    
+    db.session.add(event_calendar)
+    db.session.commit()
+
+    return jsonify({"message": "Event added to the calendar successfully"}), 201
+
+@app.route('/buy_tickets', methods=['POST'])
+def buy_tickets():
+    data = request.json
+    event_id = data['event_id']
+    customer_id = data['customer_id']
+    ticket_type = data['ticket_type']
+    payment_status = 'Paid'
+    payment_method = data['payment_method']
+
+    # Check if the event exists
+    event = Event.query.get(event_id)
+    if event is None:
+        return jsonify({'error': 'Event does not exist'}), 404
+
+    # Create a new Ticket object with the current date as the purchase_date
+    ticket = Ticket(
+        event_id=event_id,
+        customer_id=customer_id,
+        ticket_type=ticket_type,
+        purchase_date=date.today(),
+        payment_status=payment_status,
+        payment_method=payment_method
+    )
+
+    try:
+        db.session.add(ticket)
+        db.session.commit()
+        return jsonify({'message': 'Ticket purchased successfully!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to purchase ticket', 'details': str(e)})
+
+@ticket_bp.route('/view_tickets', methods=['GET'])
+@jwt_required()
+def view_tickets():
+    current_user = get_jwt_identity()  
+    user = User.query.filter_by(email=current_user).first()
+    
+    if user is None:
+        return jsonify({'error': 'User not found'}), 404
+
+    
+    tickets = Ticket.query.filter_by(customer_id=user.id).all()
+
+   
+    ticket_data = []
+    for ticket in tickets:
+        ticket_data.append({
+            'event_id': ticket.event_id,
+            'ticket_type': ticket.ticket_type,
+            'purchase_date': ticket.purchase_date.strftime('%Y-%m-%d'),
+            'payment_status': ticket.payment_status,
+            'payment_method': ticket.payment_method
+        })
+
+    return jsonify({'tickets': ticket_data})
+
+
+@app.route('/test_auth', methods=['GET'])
+@jwt_required()
+def test_auth():
+    return jsonify(message="Authentication successful")
+
+app.register_blueprint(ticket_bp)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
