@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,  Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from config import db
 from model.event import Event
 from model.eventcalendar import EventCalendar
@@ -14,10 +15,15 @@ from model.ticket import Ticket
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = '45678'
 
 db.init_app(app)
 
 migrate = Migrate(app, db)
+
+jwt = JWTManager(app)
+
+
 
 @app.route('/')
 def hello():
@@ -77,20 +83,20 @@ def create_user():
         username = data.get('username')
         password = data.get('password')
         email = data.get('email')
-        role_name = data.get('role_name')  # Provide the role name in the request
+        role_name = data.get('role_name')  
 
-        # Check if a user with the same username already exists
+        
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             return jsonify({"message": "User with that username already exists"}), 400
 
-        # Check if the provided role name exists, or create it
+       
         role = Role.query.filter_by(role_name=role_name).first()
         if not role:
             role = Role(role_name=role_name)
             db.session.add(role)
 
-        # Create the new user and assign the role
+      
         new_user = User(username=username, password=password, email=email, user_role=role)
         db.session.add(new_user)
         db.session.commit()
@@ -99,6 +105,52 @@ def create_user():
     else:
         return jsonify({"message": "Invalid data"}), 400
       
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({'message': 'Please provide both email and password'}), 400
+
+    email = data['email']
+    password = data['password']
+
+    user = User.query.filter_by(email=email).first()
+
+    if user and check_password_hash(user.password, password):
+        access_token = create_access_token(identity=email)
+        return jsonify({'access_token': access_token}), 200
+    else:
+        return jsonify({'message': 'Invalid email or password'}), 401
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({'message': 'Please provide both email and password'}), 400
+
+    email = data['email']
+    password = data['password']
+
+    existing_user = User.query.filter_by(email=email).first()
+
+    if existing_user:
+        return jsonify({'message': 'User with that email already exists'}), 409
+
+    new_user = User(email=email, password=password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'message': 'User registered successfully'}), 201
+
+@app.route('/protected', methods=['GET'])
+@jwt_required
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify({'message': 'You have access to this protected route', 'current_user': current_user})
+
+
+
 
 
 if __name__ == '__main__':
