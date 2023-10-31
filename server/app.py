@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify,  Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from datetime import datetime
 from config import db
 from model.event import Event
 from model.eventcalendar import EventCalendar
@@ -53,7 +54,7 @@ def get_user_by_id(user_id):
 
 @app.route('/users-by-role', methods=['GET'])
 def get_users_by_role():
-    role_name = request.args.get('role_name')  # Get the role name from the query parameter
+    role_name = request.args.get('role_name')  
 
     if not role_name:
         return jsonify({'error': 'Role name is required'}), 400
@@ -149,9 +150,41 @@ def protected():
     current_user = get_jwt_identity()
     return jsonify({'message': 'You have access to this protected route', 'current_user': current_user})
 
+@app.route('/_events', methods=['POST'])
+def create_event():
+    data = request.get_json()
+    if data:
+        event_name = data.get('event_name')
+        event_description = data.get('event_description')
+        # Convert date strings to Python date objects
+        start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
+        end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
+        location = data.get('location')
+        category = data.get('category')
+        total_tickets_available = data.get('total_tickets_available')
+        early_booking_price = data.get('early_booking_price')
+        mvp_price = data.get('mvp_price')
+        regular_price = data.get('regular_price')
 
+        new_event = Event(
+            event_name=event_name,
+            event_description=event_description,
+            start_date=start_date,
+            end_date=end_date,
+            location=location,
+            category=category,
+            total_tickets_available=total_tickets_available,
+            early_booking_price=early_booking_price,
+            mvp_price=mvp_price,
+            regular_price=regular_price
+        )
 
+        db.session.add(new_event)
+        db.session.commit()
 
+        return jsonify({'message': 'Event created successfully'}), 201
+    else:
+        return jsonify({'error': 'Invalid data for event creation'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)
