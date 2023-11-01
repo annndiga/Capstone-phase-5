@@ -1,6 +1,6 @@
 # Tick Management Project
 
-![Tick Management Project](https://i.ibb.co/Yt9spGc/image.png)
+![Tick Management Project]
 
 Table of Contents
 - [Project Title](#project-title)
@@ -32,7 +32,7 @@ This project is a full stack application that enables the user to manage ticks i
 - Visual representation of tick data
 
 ## Demo
-![Tick Management Project](https://i.ibb.co/Yt9spGc/image.png)
+![Tick Management Project]
 
 ## Getting Started
 
