@@ -145,7 +145,7 @@ def register():
     return jsonify({'message': 'User registered successfully'}), 201
 
 @app.route('/protected', methods=['GET'])
-@jwt_required
+@jwt_required()
 def protected():
     current_user = get_jwt_identity()
     return jsonify({'message': 'You have access to this protected route', 'current_user': current_user})
@@ -309,11 +309,39 @@ def view_tickets():
 
     return jsonify({'tickets': ticket_data})
 
+@app.route('/mpesa_authorization', methods=['GET'])
+def mpesa_authorization():
+    # Define the Safaricom M-Pesa API authorization URL
+    mpesa_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate"
+    
+    # Set the grant_type
+    querystring = {"grant_type": "client_credentials"}
 
-@app.route('/test_auth', methods=['GET'])
-@jwt_required()
-def test_auth():
-    return jsonify(message="Authentication successful")
+    # Set the client ID and client secret
+    client_id = "YourClientID"
+    client_secret = "YourClientSecret"
+
+    # Base64 encode the client ID and client secret
+    credentials = f"{client_id}:{client_secret}"
+    encoded_credentials = base64.b64encode(credentials.encode()).decode('utf-8')
+
+    # Set the request headers, including the "Authorization" header
+    headers = {
+        "Authorization": f"Basic {encoded_credentials}"
+    }
+
+    # Make the HTTP GET request to obtain the access token
+    response = requests.get(mpesa_url, headers=headers, params=querystring)
+    
+    # Check the response status code and handle the response
+    if response.status_code == 200:
+        access_token = response.json().get('access_token')
+        return jsonify({"access_token": access_token})
+    else:
+        return jsonify({"error": "Failed to obtain access token"})
+
+
+
 
 app.register_blueprint(ticket_bp)
 

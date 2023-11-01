@@ -4,53 +4,76 @@ from model.eventcalendar import EventCalendar
 from model.ticket import Ticket
 from model.user import User
 from model.role import Role
-from datetime import datetime  
+from datetime import datetime 
+from faker import Faker
 
 
-def seed_data():
-    with app.app_context():  
-        
-        role1 = Role(role_name='Organizer')
-        role2 = Role(role_name='Customer')
+# Create an instance of the Faker class
+fake = Faker()
 
-        
-        user1 = User(username='organizer1', password='hashed_password1', email='organizer1@example.com', user_role=role1)
-        user2 = User(username='customer1', password='hashed_password2', email='customer1@example.com', user_role=role2)
-
-        
-        start_date1 = datetime(2023, 10, 26)
-        end_date1 = datetime(2023, 10, 27)
-        event1 = Event(
-            organizer=user1,
-            event_name='Event 1',
-            event_description='Description 1',
-            start_date=start_date1,
-            end_date=end_date1,
-            location='Location 1',
-            category='Category 1',
-            total_tickets_available=100,
-            early_booking_price=50.0,
-            mvp_price=70.0,
-            regular_price=90.0
-        )
-
-        
-        ticket1 = Ticket(event=event1, customer=user2, ticket_type='Early Booking', purchase_date=datetime(2023, 10, 20), payment_status='Paid', payment_method='MPESA STK')
-
-        
-        event_calendar1 = EventCalendar(event=event1, customer=user2, is_added=True)
-
-       
-        db.session.add(role1)
-        db.session.add(role2)
-        db.session.add(user1)
-        db.session.add(user2)
-        db.session.add(event1)
-        db.session.add(ticket1)
-        db.session.add(event_calendar1)
-
-        
+with app.app_context():
+    def create_roles():
+        for _ in range(5):  # Create 5 roles
+            role = Role(name=fake.word())
+            db.session.add(role)
         db.session.commit()
 
-if __name__ == '__main__':
-    seed_data()
+    def create_users():
+        for _ in range(10):  # Create 10 users
+            user = User(
+                username=fake.user_name(),
+                password=fake.password(),
+                email=fake.email(),
+                user_role_id=fake.random_int(min=1, max=5)  # Assuming role IDs start from 1 and go up to 5
+            )
+            db.session.add(user)
+        db.session.commit()
+
+    def create_events():
+        for _ in range(10):  # Create 10 events
+            event = Event(
+                organizer_id=fake.random_int(min=1, max=10),  # Assuming user IDs start from 1 and go up to 10
+                event_name=fake.word(),
+                event_description=fake.text(),
+                start_date=fake.date_time_between(start_date="-30d", end_date="+30d"),
+                end_date=fake.date_time_between(start_date="+31d", end_date="+60d"),
+                location=fake.city(),
+                category=fake.word(),
+                total_tickets_available=fake.random_int(min=100, max=1000),
+                early_booking_price=fake.random_element(elements=(10.0, 20.0, 30.0)),
+                mvp_price=fake.random_element(elements=(40.0, 50.0, 60.0)),
+                regular_price=fake.random_element(elements=(70.0, 80.0, 90.0))
+            )
+            db.session.add(event)
+        db.session.commit()
+
+    def create_tickets():
+        for _ in range(20):  # Create 20 tickets
+            ticket = Ticket(
+                event_id=fake.random_int(min=1, max=10),  # Assuming event IDs start from 1 and go up to 10
+                customer_id=fake.random_int(min=1, max=10),  # Assuming user IDs start from 1 and go up to 10
+                ticket_type=fake.random_element(elements=("VIP", "Regular")),
+                purchase_date=fake.date_time_between(start_date="-30d", end_date="now"),
+                payment_status=fake.random_element(elements=("Pending", "Paid")),
+                payment_method=fake.random_element(elements=("Credit Card", "PayPal", "Cash"))
+            )
+            db.session.add(ticket)
+        db.session.commit()
+
+    def create_event_calendar():
+        for _ in range(10):  # Create 10 calendar events
+            calendar_event = EventCalendar(
+                event_id=fake.random_int(min=1, max=10),  # Assuming event IDs start from 1 and go up to 10
+                customer_id=fake.random_int(min=1, max=10),  # Assuming user IDs start from 1 and go up to 10
+                is_added=fake.boolean()
+            )
+            db.session.add(calendar_event)
+        db.session.commit()
+
+    if __name__ == "__main__":
+        with app.app_context():
+            create_roles()
+            create_users()
+            create_events()
+            create_tickets()
+            create_event_calendar()          

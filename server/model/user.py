@@ -6,4 +6,4 @@ class User(db.Model):
     password = db.Column(db.String(255))
     email = db.Column(db.String(255))
     user_role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
-    user_role = db.relationship('Role', backref='users')
+    role = db.relationship('Role', backref='roles')
