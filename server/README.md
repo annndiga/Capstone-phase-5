@@ -21,8 +21,7 @@ PROJECT TITLE: TICK_MANAGEMENT
 
 ## About the Project
 
-This project is a full stack application that enables the user to manage ticks in a given area. The application allows the user to input data about the ticks and their location, and provides a visual representation of the data.
-
+This project is a full stack application that enables the user to be able add an event buy tickets and see other events hosted in the platform
 ## Features
 
 - User input form
