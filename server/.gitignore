@@ -1,0 +1,12 @@
+# Ignore .env file
+.env
+
+# Ignore virtual environment folder
+capstone/
+
+#ignore migrations folder
+migrations/
+
+#ignore pycache folder
+__pycache__/
+
