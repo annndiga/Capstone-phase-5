@@ -10,10 +10,10 @@ const OrganizerDashboard = () => {
     category: 'Category 1',
     availableTickets: 100,
     price: 50.0,
-    total_tickets_available: 100, // Added field
-    early_booking_price: 50.0,     // Added field
-    mvp_price: 70.0,              // Added field
-    regular_price: 90.0,          // Added field
+    total_tickets_available: 100, 
+    early_booking_price: 50.0,     
+    mvp_price: 70.0,              
+    regular_price: 90.0,          
   });
 
   const handleCreateEvent = (e) => {

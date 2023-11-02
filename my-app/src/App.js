@@ -4,12 +4,15 @@ import Header from './components/Header';
 import OrganizerDashboard from './components/OrganizerDashboard';
 import UserDashboard from './components/UserDashboard';
 import EventDetails from './components/EventDetails';
-
+import HomePage from './components/HomePage';
+// import HomeArea from './components/HomeArea';
 function App() {
   return (
     <BrowserRouter>
       <div className="App">
         <Header />
+        <HomePage/>
+        {/* <HomeArea/> */}
         <Routes>
           <Route path="/organizer" element={<OrganizerDashboard />} /> 
           <Route path="/user" element={<UserDashboard />} /> 

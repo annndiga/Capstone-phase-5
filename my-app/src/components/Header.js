@@ -62,14 +62,39 @@ const Header = () => {
   };
 
   return (
-    <header>
+    <header style = {headerStyles}>
       <h1>TIKETI TAMASHA</h1>
       <nav>
-        <ul>
-          <li><a href="#">Upcoming Events</a></li>
-          <li><a href="#">Featured Events</a></li>
-          <li><a href="#" onClick={handleOrganizerClick}>Create Event</a></li>
-          <li><a href="#" onClick={handleUserClick}>Login / Sign Up</a></li>
+        <ul style = {navStyles}>
+          <li style={listItemStyles} ><a href="#">Home Area</a></li>
+          <li style={listItemStyles} ><a href="#">Upcoming Events</a></li>
+          <li style={listItemStyles}><a href="#">Featured Events</a></li>
+          {/* <li><a href="#" onClick={handleOrganizerClick}>Create Event</a></li>
+          <li><a href="#" onClick={handleUserClick}>Login / Sign Up</a></li> */}
+          <li style={listItemStyles}>
+            <a
+              href="#"
+              onClick={() => {
+                setShowOrganizerModal(true);
+                setShowUserModal(false);
+              }}
+              style={linkStyles}
+            >
+              Create Event
+            </a>
+          </li>
+          <li style={listItemStyles}>
+            <a
+              href="#"
+              onClick={() => {
+                setShowUserModal(true);
+                setShowOrganizerModal(false);
+              }}
+              style={linkStyles}
+            >
+              Login / Sign Up
+            </a>
+          </li>
         </ul>
       </nav>
       {showOrganizerModal && (
@@ -87,8 +112,8 @@ const Header = () => {
               />
             )}
             <input
-              type="email"
-              placeholder="Email"
+              type=" company email"
+              placeholder="Company Email"
               value={organizerForm.email}
               onChange={(e) =>
                 setOrganizerForm({ ...organizerForm, email: e.target.value })
@@ -181,5 +206,26 @@ const Header = () => {
     </header>
   );
 };
+const headerStyles = {
+  backgroundColor: 'pink', 
+  padding: '10px', 
+  borderRadius: '10px',
+  textAlign: 'center', 
+};
 
+const navStyles = {
+  display: 'flex', 
+  listStyle: 'none', 
+  padding: '0', 
+  justifyContent: 'center',
+};
+
+const listItemStyles = {
+  margin: '0 10px', 
+};
+
+const linkStyles = {
+  textDecoration: 'none',
+  color: 'black', 
+};
 export default Header;
