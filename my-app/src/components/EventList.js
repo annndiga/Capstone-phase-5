@@ -1,18 +1,31 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import { addToCalendar } from '../redux/actions/eventActions';
+import './EventButton.css'; // Import the CSS file
 
-const EventList = ({ events }) => {
+function EventList({ events, addToCalendar }) {
   return (
     <div>
       <h2>Events</h2>
-      <ul>
-        {events.map((event) => (
-          <li key={event.id}>
-            <a href={`/event/${event.id}`}>{event.name}</a>
-          </li>
-        ))}
-      </ul>
+      {events.map((event) => (
+        <div key={event.id}>
+          <h3>{event.name}</h3>
+          <p>{event.description}</p>
+          <button className="add-to-calendar-button" onClick={() => addToCalendar(event)}>
+            Add to Calendar
+          </button>
+        </div>
+      ))}
     </div>
   );
-};
+}
 
-export default EventList;
+const mapStateToProps = (state) => ({
+  events: state.events.events,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  addToCalendar: (event) => dispatch(addToCalendar(event)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(EventList);
