@@ -1,351 +1,308 @@
-from flask import Flask, request, jsonify,  Blueprint
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from datetime import datetime, date
-from config import db
-from model.event import Event
-from model.eventcalendar import EventCalendar
-from model.role import Role
-from model.user import User
-from model.ticket import Ticket
+from flask import Flask, request, jsonify, make_response, redirect, url_for,render_template
+from Backend.models import User, Event, Ticket, EventCalendar, Role
+from config import db, app, csrf
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+import datetime
 
-
-
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = '45678'
-
-db.init_app(app)
-
-migrate = Migrate(app, db)
-
-jwt = JWTManager(app)
-
-ticket_bp = Blueprint('ticket', __name__)
 
 @app.route('/')
-def hello():
-    return 'Welcome, Ticket Tamasha!'
-
-@app.route('/users', methods=['GET'])
-def get_users():
-    users = User.query.all()
-    user_list = [{'id': user.id, 'username': user.username, 'email': user.email} for user in users]
-    return jsonify(user_list)
-
-@app.route('/user/<int:user_id>', methods=['GET'])
-def get_user_by_id(user_id):
-    user = User.query.get(user_id)
-    if user:
-        user_data = {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "user_role_id": user.user_role_id,
-            "user_role": user.user_role.role_name if user.user_role else None,
-        }
-        return jsonify(user_data)
-    else:
-        return jsonify({"message": "User not found"}), 404
+def home():
+    return 'Welcome to the Event Management System!'
 
 
-@app.route('/users-by-role', methods=['GET'])
-def get_users_by_role():
-    role_name = request.args.get('role_name')  
+@app.route('/get-csrf-token', methods=['GET'])
+def get_csrf_token():
+    csrf_token = csrf._get_token()
+    return jsonify(csrf_token=csrf_token)
 
-    if not role_name:
-        return jsonify({'error': 'Role name is required'}), 400
-
-    role = Role.query.filter_by(role_name=role_name).first()
-    if role:
-        users = User.query.filter_by(user_role=role).all()
-        user_list = [{'id': user.id, 'username': user.username} for user in users]
-        return jsonify({'users': user_list})
-    else:
-        return jsonify({'users': []})
-
-@app.route('/user-role/<int:user_id>', methods=['GET'])
-def get_user_role(user_id):
-    user = User.query.get(user_id)
-    if user:
-        role = user.user_role.role_name
-        return jsonify({"user_id": user_id, "role": role})
-    else:
-        return jsonify({"message": "User not found"}), 404      
-
-
-@app.route('/create-user', methods=['POST'])
-def create_user():
-    data = request.get_json()
-    if data:
-        username = data.get('username')
-        password = data.get('password')
-        email = data.get('email')
-        role_name = data.get('role_name')  
-
-        
-        existing_user = User.query.filter_by(username=username).first()
-        if existing_user:
-            return jsonify({"message": "User with that username already exists"}), 400
-
-       
-        role = Role.query.filter_by(role_name=role_name).first()
-        if not role:
-            role = Role(role_name=role_name)
-            db.session.add(role)
-
-      
-        new_user = User(username=username, password=password, email=email, user_role=role)
-        db.session.add(new_user)
-        db.session.commit()
-
-        return jsonify({"message": "User created successfully"}), 201
-    else:
-        return jsonify({"message": "Invalid data"}), 400
-      
-
+#api for login in for the user to get the access token
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    if not data or 'email' not in data or 'password' not in data:
-        return jsonify({'message': 'Please provide both email and password'}), 400
-
-    email = data['email']
-    password = data['password']
-
-    user = User.query.filter_by(email=email).first()
-
-    if user and check_password_hash(user.password, password):
-        access_token = create_access_token(identity=email)
-        return jsonify({'access_token': access_token}), 200
+    if request.is_json:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
     else:
-        return jsonify({'message': 'Invalid email or password'}), 401
+        username = request.form['username']
+        password = request.form['password']
 
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    if not data or 'email' not in data or 'password' not in data:
-        return jsonify({'message': 'Please provide both email and password'}), 400
-
-    email = data['email']
-    password = data['password']
-
-    existing_user = User.query.filter_by(email=email).first()
-
-    if existing_user:
-        return jsonify({'message': 'User with that email already exists'}), 409
-
-    new_user = User(email=email, password=password)
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({'message': 'User registered successfully'}), 201
-
-@app.route('/protected', methods=['GET'])
-@jwt_required()
-def protected():
-    current_user = get_jwt_identity()
-    return jsonify({'message': 'You have access to this protected route', 'current_user': current_user})
-
-@app.route('/_events', methods=['POST'])
-def create_event():
-    data = request.get_json()
-    if data:
-        event_name = data.get('event_name')
-        event_description = data.get('event_description')
-        # Convert date strings to Python date objects
-        start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d').date()
-        end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').date()
-        location = data.get('location')
-        category = data.get('category')
-        total_tickets_available = data.get('total_tickets_available')
-        early_booking_price = data.get('early_booking_price')
-        mvp_price = data.get('mvp_price')
-        regular_price = data.get('regular_price')
-
-        new_event = Event(
-            event_name=event_name,
-            event_description=event_description,
-            start_date=start_date,
-            end_date=end_date,
-            location=location,
-            category=category,
-            total_tickets_available=total_tickets_available,
-            early_booking_price=early_booking_price,
-            mvp_price=mvp_price,
-            regular_price=regular_price
-        )
-
-        db.session.add(new_event)
-        db.session.commit()
-
-        return jsonify({'message': 'Event created successfully'}), 201
+    user = User.query.filter_by(username=username).first()
+    if user and user.check_password(password):
+        access_token = create_access_token(identity=username, user_claims={'role': user.user_role_id})
+        return jsonify(message="Login succeeded!", access_token=access_token), 200
     else:
-        return jsonify({'error': 'Invalid data for event creation'}), 400
+        return jsonify(message="Bad username or password"), 401
 
-
-@app.route('/search_events', methods=['GET'])
-def search_events():
-    
-    event_name = request.args.get('event_name')
-    category = request.args.get('category')
-    location = request.args.get('location')
-
-    
-    base_query = Event.query
-
-    
-    if event_name:
-        base_query = base_query.filter(Event.event_name.ilike(f"%{event_name}%"))
-
-    if category:
-        base_query = base_query.filter(Event.category.ilike(f"%{category}%"))
-
-    if location:
-        base_query = base_query.filter(Event.location.ilike(f"%{location}%"))
-
-    
-    matching_events = base_query.all()
-
-   
-    serialized_events = [{
-        'event_name': event.event_name,
-        'event_description': event.event_description,
-        'start_date': event.start_date.strftime('%Y-%m-%d'),
-        'end_date': event.end_date.strftime('%Y-%m-%d'),
-        'location': event.location,
-        'category': event.category,
-        'total_tickets_available': event.total_tickets_available,
-        'early_booking_price': float(event.early_booking_price),
-        'mvp_price': float(event.mvp_price),
-        'regular_price': float(event.regular_price)
-    } for event in matching_events]
-
-    return jsonify({'events': serialized_events})
-
-@app.route('/add_to_calendar', methods=['POST'])
-def add_to_calendar():
-    data = request.get_json()
-
-    if not data:
-        return jsonify({"message": "Invalid data"}), 400
-
-    user_id = data.get('user_id')  
-    event_id = data.get('event_id') 
-
-    
-    user = User.query.get(user_id)
-    event = Event.query.get(event_id)
-
-    if not user or not event:
-        return jsonify({"message": "User or event not found"}), 404
-
-    
-    event_calendar = EventCalendar(event_id=event_id, customer_id=user_id, is_added=True)
-
-    
-    db.session.add(event_calendar)
-    db.session.commit()
-
-    return jsonify({"message": "Event added to the calendar successfully"}), 201
-
-@app.route('/buy_tickets', methods=['POST'])
-def buy_tickets():
+# Sign-up route
+@app.route('/users', methods=['POST'])
+def create_new_user():
     data = request.json
-    event_id = data['event_id']
-    customer_id = data['customer_id']
-    ticket_type = data['ticket_type']
-    payment_status = 'Paid'
-    payment_method = data['payment_method']
 
-    # Check if the event exists
-    event = Event.query.get(event_id)
-    if event is None:
-        return jsonify({'error': 'Event does not exist'}), 404
+    if 'Username' not in data or 'Email' not in data or 'Password' not in data:
+        return jsonify({'message': 'Please provide Username, Email, and Password'}), 400
 
-    # Create a new Ticket object with the current date as the purchase_date
-    ticket = Ticket(
-        event_id=event_id,
-        customer_id=customer_id,
-        ticket_type=ticket_type,
-        purchase_date=date.today(),
-        payment_status=payment_status,
-        payment_method=payment_method
+    username = data['Username']
+    email = data['Email']
+    password = data['Password']
+
+    existing_user = User.query.filter_by(Email=email).first()
+    if existing_user:
+        return jsonify({'message': 'Email already in use'}), 400
+
+    new_user = User(
+        Username=username,
+        Email=email,
+        Password=generate_password_hash(password),
+        user_role_id=4  # Set the user role as needed
     )
 
     try:
-        db.session.add(ticket)
+        db.session.add(new_user)
         db.session.commit()
-        return jsonify({'message': 'Ticket purchased successfully!'})
+
+        user_data = {
+            "User_ID": new_user.User_ID,
+            "Username": new_user.Username,
+            "Email": new_user.Email,
+            "Password": new_user.Password,
+            "user_role_id": new_user.user_role_id  # Include the user role in the response
+        }
+
+        return jsonify(user_data), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': 'Failed to purchase ticket', 'details': str(e)})
+        return jsonify({'message': 'Failed to create user'}), 500
 
-@ticket_bp.route('/view_tickets', methods=['GET'])
-@jwt_required()
-def view_tickets():
-    current_user = get_jwt_identity()  
-    user = User.query.filter_by(email=current_user).first()
-    
-    if user is None:
-        return jsonify({'error': 'User not found'}), 404
 
-    
-    tickets = Ticket.query.filter_by(customer_id=user.id).all()
-
-   
-    ticket_data = []
-    for ticket in tickets:
-        ticket_data.append({
-            'event_id': ticket.event_id,
-            'ticket_type': ticket.ticket_type,
-            'purchase_date': ticket.purchase_date.strftime('%Y-%m-%d'),
-            'payment_status': ticket.payment_status,
-            'payment_method': ticket.payment_method
-        })
-
-    return jsonify({'tickets': ticket_data})
-
-@app.route('/mpesa_authorization', methods=['GET'])
-def mpesa_authorization():
-    # Define the Safaricom M-Pesa API authorization URL
-    mpesa_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate"
-    
-    # Set the grant_type
-    querystring = {"grant_type": "client_credentials"}
-
-    # Set the client ID and client secret
-    client_id = "YourClientID"
-    client_secret = "YourClientSecret"
-
-    # Base64 encode the client ID and client secret
-    credentials = f"{client_id}:{client_secret}"
-    encoded_credentials = base64.b64encode(credentials.encode()).decode('utf-8')
-
-    # Set the request headers, including the "Authorization" header
-    headers = {
-        "Authorization": f"Basic {encoded_credentials}"
-    }
-
-    # Make the HTTP GET request to obtain the access token
-    response = requests.get(mpesa_url, headers=headers, params=querystring)
-    
-    # Check the response status code and handle the response
-    if response.status_code == 200:
-        access_token = response.json().get('access_token')
-        return jsonify({"access_token": access_token})
+# Define the user profile route
+@app.route('/userprofile', methods=['GET'])
+@jwt_required
+def get_user_profile():
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(username=current_user).first()
+    if user:
+        user_data = {
+            'username': user.username,
+            'email': user.email,
+            # Add other user profile information here
+        }
+        return jsonify(user_data)
     else:
-        return jsonify({"error": "Failed to obtain access token"})
+        return jsonify(message="User not found"), 404
 
 
+#api to get all events in the platform
+@app.route('/events', methods=['GET', 'POST'])
+# @jwt_required
+def events():
+    if request.method == 'GET':
+        events = Event.query.all()
+        results = [
+            {
+                "id": event.id,
+                "organizer_id": event.organizer_id,
+                "event_name": event.event_name,
+                "event_description": event.event_description,
+                "start_date": event.start_date,
+                "end_date": event.end_date,
+                "location": event.location,
+                "category": event.category,
+                "total_tickets_available": event.total_tickets_available,
+                "early_booking_price": event.early_booking_price,
+                "mvp_price": event.mvp_price,
+                "regular_price": event.regular_price
+            } for event in events]
+        return jsonify(results)
+    elif request.method == 'POST':
+        if request.is_json:
+            organizer_id = request.json['organizer_id']
+            event_name = request.json['event_name']
+            event_description = request.json['event_description']
+            start_date = request.json['start_date']
+            end_date = request.json['end_date']
+            location = request.json['location']
+            category = request.json['category']
+            total_tickets_available = request.json['total_tickets_available']
+            early_booking_price = request.json['early_booking_price']
+            mvp_price = request.json['mvp_price']
+            regular_price = request.json['regular_price']
+        else:
+            organizer_id = request.form['organizer_id']
+            event_name = request.form['event_name']
+            event_description = request.form['event_description']
+            start_date = request.form['start_date']
+            end_date = request.form['end_date']
+            location = request.form['location']
+            category = request.form['category']
+            total_tickets_available = request.form['total_tickets_available']
+            early_booking_price = request.form['early_booking_price']
+            mvp_price = request.form['mvp_price']
+            regular_price = request.form['regular_price']
+        event = Event.query.filter_by(event_name=event_name).first()
+        if event:
+            return jsonify({'message':"Event already exists"}), 409
+        else:
+            new_event = Event(organizer_id=organizer_id, event_name=event_name, event_description=event_description, start_date=start_date, end_date=end_date, location=location, category=category, total_tickets_available=total_tickets_available, early_booking_price=early_booking_price, mvp_price=mvp_price, regular_price=regular_price)
+            new_event.save()
+            return jsonify(message="Event created successfully!"), 201
+
+#an api to get all users in the platform
+@app.route('/users', methods=['GET'])
+def users():
+    if request.method == 'GET':
+        users = User.query.all()
+        results = [
+            {
+                "id": user.id,
+                "username": user.username,
+                "password": user.password,
+                "email": user.email,
+                "user_role_id": user.user_role_id
+            } for user in users]
+        return jsonify(results)
+
+#api to get a single user
+@app.route('/users/<user_id>', methods=['GET'])
+def get_user(user_id):
+    user = User.query.filter_by(id=user_id).first()
+    if user:
+        result = {
+            "id": user.id,
+            "username": user.username,
+            "password": user.password,
+            "email": user.email,
+            "user_role_id": user.user_role_id
+        }
+        return jsonify(result), 200
+    else:
+        return make_response(jsonify(message="User Not Found"), 404)
+
+@app.route('/users', methods=['POST'])
+def create_user():
+    if request.method == 'POST':
+        data = request.json  # Get JSON data from the request
+
+        # Extract user data from the request JSON
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+        user_role_id = data.get("user_role_id")
+
+        # Perform user registration logic here
+        # Create a new User object and add it to the database
+        new_user = User(username=username, email=email, password=password, user_role_id=user_role_id)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return jsonify({"message": "User registered successfully"}, 201)
 
 
-app.register_blueprint(ticket_bp)
+#api to be able to see all tickets in the platforms with their respective events
+@app.route('/tickets', methods=['GET', 'POST'])
+# @jwt_required
+def tickets():
+    if request.method == 'GET':
+        tickets = Ticket.query.all()
+        results = [
+            {
+                "id": ticket.id,
+                "event_id": ticket.event_id,
+                "customer_id": ticket.customer_id,
+                "ticket_type": ticket.ticket_type,
+                "purchase_date": ticket.purchase_date,
+                "payment_status": ticket.payment_status,
+                "payment_method": ticket.payment_method
+            } for ticket in tickets]
+        return jsonify(results)
+    elif request.method == 'POST':
+        if request.is_json:
+            event_id = request.json['event_id']
+            customer_id = request.json['customer_id']
+            ticket_type = request.json['ticket_type']
+            purchase_date = request.json['purchase_date']
+            payment_status = request.json['payment_status']
+            payment_method = request.json['payment_method']
+        else:
+            event_id = request.form['event_id']
+            customer_id = request.form['customer_id']
+            ticket_type = request.form['ticket_type']
+            purchase_date = request.form['purchase_date']
+            payment_status = request.form['payment_status']
+            payment_method = request.form['payment_method']
+        ticket = Ticket.query.filter_by(event_id=event_id).first()
+        if ticket:
+            return make_response(jsonify(message="Ticket already exists"), 409)
+        else:
+            new_ticket = Ticket(event_id=event_id, customer_id=customer_id, ticket_type=ticket_type, purchase_date=purchase_date, payment_status=payment_status, payment_method=payment_method)
+            new_ticket.save()
+            return make_response(jsonify(message="Ticket created successfully!"), 201)
+#api to get a single ticket
+@app.route('/tickets/<ticket_id>', methods=['GET'])
+def get_ticket(ticket_id):
+    ticket = Ticket.query.filter_by(id=ticket_id).first()
+    if ticket:
+        result = {
+            "id": ticket.id,
+            "event_id": ticket.event_id,
+            "customer_id": ticket.customer_id,
+            "ticket_type": ticket.ticket_type,
+            "purchase_date": ticket.purchase_date,
+            "payment_status": ticket.payment_status,
+            "payment_method": ticket.payment_method
+        }
+        return jsonify(result), 200
+    else:
+        return make_response(jsonify(message="That ticket does not exist"), 404)
+
+#api to see all calender events in the platform
+# @jwt_required
+@app.route('/calendar', methods=['GET', 'POST'])
+def calendar():
+    if request.method == 'GET':
+        calendar_events = EventCalendar.query.all()
+        results = [
+            {
+                "id": calendar_event.id,
+                "event_id": calendar_event.event_id,
+                "customer_id": calendar_event.customer_id,
+                "is_added": calendar_event.is_added
+            } for calendar_event in calendar_events]
+        return jsonify(results)
+    elif request.method == 'POST':
+        if request.is_json:
+            event_id = request.json['event_id']
+            customer_id = request.json['customer_id']
+            is_added = request.json['is_added']
+        else:
+            event_id = request.form['event_id']
+            customer_id = request.form['customer_id']
+            is_added = request.form['is_added']
+        calendar_event = EventCalendar.query.filter_by(event_id=event_id).first()
+        if calendar_event:
+            return make_response(jsonify(message="Event already exists"), 409)
+        else:
+            new_calendar_event = EventCalendar(event_id=event_id, customer_id=customer_id, is_added=is_added)
+            new_calendar_event.save()
+            return make_response(jsonify(message="Event created successfully!"), 201)
+
+#api to get a single calendar event
+@app.route('/calendar/<calendar_event_id>', methods=['GET'])
+def get_calendar_event(calendar_event_id):
+    calendar_event = EventCalendar.query.filter_by(id=calendar_event_id).first()
+    if calendar_event:
+        result = {
+            "id": calendar_event.id,
+            "event_id": calendar_event.event_id,
+            "customer_id": calendar_event.customer_id,
+            "is_added": calendar_event.is_added
+        }
+        return jsonify(result), 200
+    else:
+        return make_response(jsonify(message="That calendar event does not exist"), 404)
 
 
 if __name__ == '__main__':
+    app.config['SECRET_KEY'] = '2345'
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
-

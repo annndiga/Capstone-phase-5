@@ -1,12 +1,6 @@
-from app import app, db  
-from model.event import Event
-from model.eventcalendar import EventCalendar
-from model.ticket import Ticket
-from model.user import User
-from model.role import Role
-from datetime import datetime 
 from faker import Faker
-
+from config import db, app
+from Backend.models import Role, User, Event, Ticket, EventCalendar
 
 # Create an instance of the Faker class
 fake = Faker()
@@ -76,4 +70,4 @@ with app.app_context():
             create_users()
             create_events()
             create_tickets()
-            create_event_calendar()          
+            create_event_calendar()            
