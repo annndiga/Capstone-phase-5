@@ -1,9 +1,37 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { addToCalendar } from '../redux/actions/eventActions';
-import './EventButton.css'; // Import the CSS file
+import React, { useState, useEffect } from 'react';
+import './EventButton.css';
+import axios from 'axios';
 
-function EventList({ events, addToCalendar }) {
+function EventList({ addToCalendar }) {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+
+    axios.get('/api/events') 
+      .then((response) => {
+        setEvents(response.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Error fetching events:', error);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (events.length === 0) {
+    return (
+      <div>
+        <h2>Events</h2>
+        <p>No events available.</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2>Events</h2>
@@ -20,12 +48,4 @@ function EventList({ events, addToCalendar }) {
   );
 }
 
-const mapStateToProps = (state) => ({
-  events: state.events.events,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  addToCalendar: (event) => dispatch(addToCalendar(event)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(EventList);
+export default EventList;

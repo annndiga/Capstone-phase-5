@@ -1,20 +1,31 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import store from './redux/store';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Header from './components/Header';
+import OrganizerDashboard from './components/OrganizerDashboard';
+import UserDashboard from './components/UserDashboard';
+import EventDetails from './components/EventDetails';
+import HomePage from './components/HomePage';
+import SearchBar from './components/SearchBar';
 import EventList from './components/EventList';
 import ViewCalendar from './components/ViewCalendar';
-import SearchBar from './components/SearchBar';
 
 function App() {
   return (
-    <Provider store={store}>
-      <div>
-        <h1>Event Ticketing App</h1>
+    <BrowserRouter>
+      <div className="App">
+        <Header />
         <SearchBar />
+        <HomePage/>
         <EventList />
         <ViewCalendar />
+        {/* <HomeArea/> */}
+        <Routes>
+          <Route path="/organizer" element={<OrganizerDashboard />} /> 
+          <Route path="/user" element={<UserDashboard />} /> 
+          <Route path="/event/:eventId" element={<EventDetails />} /> 
+        </Routes>
       </div>
-    </Provider>
+    </BrowserRouter>
   );
 }
 

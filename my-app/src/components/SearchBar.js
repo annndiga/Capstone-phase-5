@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { connect } from 'react-redux';
-import { searchEvents } from '../redux/actions/eventActions';
-import './SearchBar.css'; 
 
-function SearchBar({ searchEvents }) {
+import './SearchBar.css';
+
+function SearchBar({ onSearch }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = () => {
-    searchEvents(searchQuery);
+    onSearch(searchQuery);
   };
 
   return (
@@ -23,10 +22,4 @@ function SearchBar({ searchEvents }) {
   );
 }
 
-const mapDispatchToProps = (dispatch) => ({
-  searchEvents: (query) => dispatch(searchEvents(query)),
-});
-
-export default connect(null, mapDispatchToProps)(SearchBar);
-
-
+export default SearchBar;
