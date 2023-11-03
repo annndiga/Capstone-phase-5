@@ -2,230 +2,145 @@ import React, { useState } from 'react';
 import '../App.css';
 
 const Header = () => {
-  const [showOrganizerModal, setShowOrganizerModal] = useState(false);
-  const [showUserModal, setShowUserModal] = useState(false);
+  const [showOrganizerForm, setShowOrganizerForm] = useState(false);
+  const [showUserForm, setShowUserForm] = useState(false);
   const [showUserSignupFields, setShowUserSignupFields] = useState(false);
-  const [showUserLoginFields, setShowUserLoginFields] = useState(true);
-
-  const [organizerForm, setOrganizerForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-
-  const [userForm, setUserForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
 
   const handleOrganizerClick = () => {
-    setShowOrganizerModal(true);
+    setShowOrganizerForm(true);
+    setShowUserForm(false);
     setShowUserSignupFields(false);
-    setShowUserLoginFields(true);
   };
 
   const handleUserClick = () => {
-    setShowUserModal(true);
+    setShowUserForm(true);
+    setShowOrganizerForm(false);
     setShowUserSignupFields(false);
-    setShowUserLoginFields(true);
   };
 
   const handleUserSignupClick = () => {
     setShowUserSignupFields(true);
-    setShowUserLoginFields(false);
   };
 
   const handleUserLoginClick = () => {
     setShowUserSignupFields(false);
-    setShowUserLoginFields(true);
   };
 
-  const handleOrganizerSubmit = (e) => {
-    e.preventDefault();
-    if (showUserSignupFields) {
-      // Handle user signup as an organizer
-    } else {
-      // Handle user login as an organizer
-    }
-  };
-
-  const handleUserSubmit = (e) => {
-    e.preventDefault();
-    if (showUserSignupFields) {
-      // Handle user signup
-    } else {
-      // Handle user login
-    }
+  const handleCloseClick = () => {
+    setShowOrganizerForm(false);
+    setShowUserForm(false);
   };
 
   return (
-    <header style = {headerStyles}>
+    <header style={headerStyles}>
       <h1>TIKETI TAMASHA</h1>
       <nav>
-        <ul style = {navStyles}>
-          <li style={listItemStyles} ><a href="#">Home Area</a></li>
-          <li style={listItemStyles} ><a href="#">Upcoming Events</a></li>
-          <li style={listItemStyles}><a href="#">Featured Events</a></li>
-          {/* <li><a href="#" onClick={handleOrganizerClick}>Create Event</a></li>
-          <li><a href="#" onClick={handleUserClick}>Login / Sign Up</a></li> */}
+        <ul style={navStyles}>
           <li style={listItemStyles}>
-            <a
-              href="#"
-              onClick={() => {
-                setShowOrganizerModal(true);
-                setShowUserModal(false);
-              }}
-              style={linkStyles}
-            >
+            <a href="#">Home Area</a>
+          </li>
+          <li style={listItemStyles}>
+            <a href="#">Upcoming Events</a>
+          </li>
+          <li style={listItemStyles}>
+            <a href="#">Featured Events</a>
+          </li>
+          <li style={listItemStyles}>
+            <a href="#" onClick={handleOrganizerClick} style={linkStyles}>
               Create Event
             </a>
           </li>
           <li style={listItemStyles}>
-            <a
-              href="#"
-              onClick={() => {
-                setShowUserModal(true);
-                setShowOrganizerModal(false);
-              }}
-              style={linkStyles}
-            >
+            <a href="#" onClick={handleUserClick} style={linkStyles}>
               Login / Sign Up
             </a>
           </li>
         </ul>
       </nav>
-      {showOrganizerModal && (
-        <div className="modal">
+      {showOrganizerForm && (
+        <div className="modal" style={modalStyles}>
           <h2>{showUserSignupFields ? 'Sign Up as an Organizer' : 'Login as an Organizer'}</h2>
-          <form onSubmit={handleOrganizerSubmit}>
+          <form>
             {showUserSignupFields && (
-              <input
-                type="text"
-                placeholder="Name"
-                value={organizerForm.name}
-                onChange={(e) =>
-                  setOrganizerForm({ ...organizerForm, name: e.target.value })
-                }
-              />
+              <input type="text" placeholder="Name" />
             )}
-            <input
-              type=" company email"
-              placeholder="Company Email"
-              value={organizerForm.email}
-              onChange={(e) =>
-                setOrganizerForm({ ...organizerForm, email: e.target.value })
-              }
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={organizerForm.password}
-              onChange={(e) =>
-                setOrganizerForm({ ...organizerForm, password: e.target.value })
-              }
-            />
+            <input type="company email" placeholder="Company Email" />
+            <input type="password" placeholder="Password" />
             {showUserSignupFields && (
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                value={organizerForm.confirmPassword}
-                onChange={(e) =>
-                  setOrganizerForm({
-                    ...organizerForm,
-                    confirmPassword: e.target.value,
-                  })
-                }
-              />
+              <input type="password" placeholder="Confirm Password" />
             )}
-            <button type="submit">{showUserSignupFields ? 'Sign Up' : 'Login'}</button>
+            <button type="submit">
+              {showUserSignupFields ? 'Sign Up' : 'Login'}
+            </button>
           </form>
           {showUserSignupFields ? (
             <p>If you already have an account, <a href="#" onClick={handleUserLoginClick}>Login</a></p>
           ) : (
             <p>If you don't have an account, <a href="#" onClick={handleUserSignupClick}>Sign Up</a></p>
           )}
-          <button onClick={() => setShowOrganizerModal(false)}>Close</button>
+          <button onClick={handleCloseClick}>Close</button>
         </div>
       )}
-      {showUserModal && (
-        <div className="modal">
+      {showUserForm && (
+        <div className="modal" style={modalStyles}>
           <h2>{showUserSignupFields ? 'Sign Up as a User' : 'Login as a User'}</h2>
-          <form onSubmit={handleUserSubmit}>
+          <form>
             {showUserSignupFields && (
-              <input
-                type="text"
-                placeholder="Name"
-                value={userForm.name}
-                onChange={(e) =>
-                  setUserForm({ ...userForm, name: e.target.value })
-                }
-              />
+               <input type="email" placeholder="Email" />
             )}
-            <input
-              type="email"
-              placeholder="Email"
-              value={userForm.email}
-              onChange={(e) =>
-                setUserForm({ ...userForm, email: e.target.value })
-              }
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={userForm.password}
-              onChange={(e) =>
-                setUserForm({ ...userForm, password: e.target.value })
-              }
-            />
+            <input type="text" placeholder="User name" />
+           
+            <input type="password" placeholder="Password" />
             {showUserSignupFields && (
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                value={userForm.confirmPassword}
-                onChange={(e) =>
-                  setUserForm({
-                    ...userForm,
-                    confirmPassword: e.target.value,
-                  })
-                }
-              />
+              <input type="password" placeholder="Confirm Password" />
             )}
-            <button type="submit">{showUserSignupFields ? 'Sign Up' : 'Login'}</button>
+            <button type="submit">
+              {showUserSignupFields ? 'Sign Up' : 'Login'}
+            </button>
           </form>
           {showUserSignupFields ? (
             <p>If you already have an account, <a href="#" onClick={handleUserLoginClick}>Login</a></p>
           ) : (
             <p>If you don't have an account, <a href="#" onClick={handleUserSignupClick}>Sign Up</a></p>
           )}
-          <button onClick={() => setShowUserModal(false)}>Close</button>
+          <button onClick={handleCloseClick}>Close</button>
         </div>
       )}
     </header>
   );
 };
+
 const headerStyles = {
-  backgroundColor: 'pink', 
-  padding: '10px', 
+  backgroundColor: 'pink',
+  padding: '10px',
   borderRadius: '10px',
-  textAlign: 'center', 
+  textAlign: 'center',
 };
 
 const navStyles = {
-  display: 'flex', 
-  listStyle: 'none', 
-  padding: '0', 
+  display: 'flex',
+  listStyle: 'none',
+  padding: '0',
   justifyContent: 'center',
 };
 
 const listItemStyles = {
-  margin: '0 10px', 
+  margin: '0 10px',
 };
 
 const linkStyles = {
   textDecoration: 'none',
-  color: 'black', 
+  color: 'black',
+};
+
+const modalStyles = {
+  backgroundColor: ' #ec6868',
+  padding: '20px',
+  borderRadius: '10px',
+  textAlign: 'center',
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
 };
 export default Header;

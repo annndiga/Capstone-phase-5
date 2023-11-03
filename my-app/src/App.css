@@ -123,6 +123,13 @@ nav ul li {
     flex-direction: column;
     align-items: flex-start;
   }
+  @media (max-width: 768px) {
+  
+  }
+  
+  @media (min-width: 769px) {
+    
+  }
   
   nav ul {
     margin-top: 10px;
