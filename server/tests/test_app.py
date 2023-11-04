@@ -197,3 +197,84 @@ class TestAPI(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
+def test_get_all_events(self):
+    with self.app as client:
+        response = client.get('/api/events')
+        assert response.status_code == 200
+        assert isinstance(response.json, list)
+
+def test_create_event(self):
+    with self.app as client:
+        event_data = {
+            "organizer_id": 1,
+            "event_name": "Test Event",
+            "event_description": "This is a test event",
+            "start_date": "2022-01-01",
+            "end_date": "2022-01-02",
+            "location": "Test Location",
+            "category": "Test Category",
+            "total_tickets_available": 100,
+            "early_booking_price": 50,
+            "mvp_price": 75,
+            "regular_price": 100
+        }
+        response = client.post('/api/events', json=event_data)
+        assert response.status_code == 201
+        assert response.json['message'] == "Event created successfully!"
+        assert Event.query.filter_by(event_name="Test Event").first() is not None
+
+def test_create_duplicate_event(self):
+    with self.app as client:
+        event_data = {
+            "organizer_id": 1,
+            "event_name": "Test Event",
+            "event_description": "This is a test event",
+            "start_date": "2022-01-01",
+            "end_date": "2022-01-02",
+            "location": "Test Location",
+            "category": "Test Category",
+            "total_tickets_available": 100,
+            "early_booking_price": 50,
+            "mvp_price": 75,
+            "regular_price": 100
+        }
+        response = client.post('/api/events', json=event_data)
+        assert response.status_code == 409
+        assert response.json['message'] == "Event already exists"
+
+def test_create_event_invalid_data(self):
+    with self.app as client:
+        event_data = {
+            "organizer_id": 1,
+            "event_name": "Test Event",
+            "event_description": "This is a test event",
+            "start_date": "2022-01-01",
+            "end_date": "2022-01-02",
+            "location": "Test Location",
+            "category": "Test Category",
+            "total_tickets_available": "invalid",
+            "early_booking_price": 50,
+            "mvp_price": 75,
+            "regular_price": 100
+        }
+        response = client.post('/api/events', json=event_data)
+        assert response.status_code == 400
+        assert response.json['message'] == "Invalid data provided"
+
+def test_create_event_missing_data(self):
+    with self.app as client:
+        event_data = {
+            "organizer_id": 1,
+            "event_name": "Test Event",
+            "event_description": "This is a test event",
+            "start_date": "2022-01-01",
+            "end_date": "2022-01-02",
+            "location": "Test Location",
+            "category": "Test Category",
+            "early_booking_price": 50,
+            "mvp_price": 75,
+            "regular_price": 100
+        }
+        response = client.post('/api/events', json=event_data)
+        assert response.status_code == 400
+        assert response.json['message'] == "Missing required data"

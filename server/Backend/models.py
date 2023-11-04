@@ -1,4 +1,6 @@
 from config import db
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -23,7 +25,21 @@ class User(db.Model):
     def save(self):
         db.session.add(self)
         db.session.commit()
+    
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
 
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+    
+    @classmethod
+    def get_user_by_username(cls, username):
+        return cls.query.filter_by(username=username).first()
+    
 class Event(db.Model):
     __tablename__ = 'events'
 
@@ -67,4 +83,22 @@ class EventCalendar(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     customer = db.relationship('User', backref='calendar_events')
     is_added = db.Column(db.Boolean)
+
+class TokenBlocklist(db.Model):
+    __tablename__ = 'token_blocklist'
+
+    id = db.Column(db.Integer, primary_key=True)
+    jti = db.Column(db.String(255))
+    token_type = db.Column(db.String(255))
+    user_identity = db.Column(db.String(255))
+    revoked = db.Column(db.Boolean)
+    created_at = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+    
+    def __repr__(self) -> str:
+        return f'<TokenBlocklist: {self.jti}>'
+    
     
