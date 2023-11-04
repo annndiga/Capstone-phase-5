@@ -1,5 +1,4 @@
-import React from 'react';
-import { connect } from 'react-redux';
+import React, { useState, useEffect } from 'react';
 
 function ViewCalendar({ userCalendar }) {
   return (
@@ -15,8 +14,26 @@ function ViewCalendar({ userCalendar }) {
   );
 }
 
-const mapStateToProps = (state) => ({
-  userCalendar: state.events.userCalendar,
-});
+function App() {
+  const [userCalendar, setUserCalendar] = useState([]);
 
-export default connect(mapStateToProps)(ViewCalendar);
+  useEffect(() => {
+    
+    fetch('your_api_endpoint_here')
+      .then((response) => response.json())
+      .then((data) => {
+        setUserCalendar(data); 
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+      });
+  }, []);
+
+  return (
+    <div>
+      <ViewCalendar userCalendar={userCalendar} />
+    </div>
+  );
+}
+
+export default App;

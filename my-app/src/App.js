@@ -8,18 +8,17 @@ import HomePage from './components/HomePage';
 import SearchBar from './components/SearchBar';
 import EventList from './components/EventList';
 import ViewCalendar from './components/ViewCalendar';
-// import HomeArea from './components/HomeArea';
+
+
 function App() {
   return (
     <BrowserRouter>
       <div className="App">
         <Header />
-
         <SearchBar />
         <HomePage/>
         <EventList />
         <ViewCalendar />
-        <HomePage/>
         {/* <HomeArea/> */}
         <Routes>
           <Route path="/organizer" element={<OrganizerDashboard />} /> 
