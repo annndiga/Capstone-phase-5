@@ -25,9 +25,9 @@ def register():
     if user:
         return jsonify(message="Username already exists"), 409
     else:
-        new_user = User(username=username, password=password, email=email)
-        new_user.save()
+        new_user = User(username=username, password=password, email=email)       
         new_user.set_password(data.get('password'))
+        new_user.save()
         access_token = create_access_token(identity=new_user.username)
         return jsonify(message="User created successfully!", access_token=access_token), 201
 
@@ -38,7 +38,7 @@ def login():
     user = User.get_user_by_username(username=data.get('username'))
     if user is None:
         return jsonify(message="Bad username or password"), 401
-    if user.check_password(data.get('password')):
+    if user and (user.check_password(data.get('password'))):
         access_token = create_access_token(identity=user.username)
         refresh_token = create_refresh_token(identity=user.username)
         return jsonify({
