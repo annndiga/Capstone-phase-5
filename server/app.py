@@ -134,7 +134,7 @@ def home():
 
 # #api to get all events in the platform
 @app.route('/api/events', methods=['GET', 'POST'])
-@jwt_required
+@jwt_required()
 def events():
     if request.method == 'GET':
         events = Event.query.all()
