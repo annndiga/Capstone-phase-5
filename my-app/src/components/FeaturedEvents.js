@@ -7,7 +7,7 @@ const FeaturedEvents = () => {
   const [filteredEvents, setFilteredEvents] = useState([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/events/') 
+    fetch('') 
       .then((response) => response.json())
       .then((data) => {
         setEvents(data);
