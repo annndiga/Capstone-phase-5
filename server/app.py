@@ -1,99 +1,131 @@
-from flask import Flask, request, jsonify, make_response, redirect, url_for,render_template
-from Backend.models import User, Event, Ticket, EventCalendar, Role
-from config import db, app, csrf
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flask import Flask, request, jsonify, make_response, redirect, url_for,render_template,Blueprint
+from Backend.models import User, Event, Ticket, EventCalendar, Role, TokenBlocklist
+from config import db, app, csrf,jwt
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required,create_refresh_token, get_jwt,current_user
 import datetime
+import os
 
+auth_bp = Blueprint('auth', __name__)
 
 @app.route('/')
 def home():
     return 'Welcome to the Event Management System!'
 
 
-@app.route('/get-csrf-token', methods=['GET'])
-def get_csrf_token():
-    csrf_token = csrf._get_token()
-    return jsonify(csrf_token=csrf_token)
 
-#api for login in for the user to get the access token
-@app.route('/login', methods=['POST'])
-def login():
+# Define the routes for the auth_bp blueprint here
+#api to register a new user
+@auth_bp.route('/register', methods=['POST'])
+def register():
     if request.is_json:
-        data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
+        username = request.json['username']
+        password = request.json['password']
+        email = request.json['email']
     else:
         username = request.form['username']
         password = request.form['password']
-
-    user = User.query.filter_by(username=username).first()
-    if user and user.check_password(password):
-        access_token = create_access_token(identity=username, user_claims={'role': user.user_role_id})
-        return jsonify(message="Login succeeded!", access_token=access_token), 200
-    else:
-        return jsonify(message="Bad username or password"), 401
-
-# Sign-up route
-@app.route('/users', methods=['POST'])
-def create_new_user():
-    data = request.json
-
-    if 'Username' not in data or 'Email' not in data or 'Password' not in data:
-        return jsonify({'message': 'Please provide Username, Email, and Password'}), 400
-
-    username = data['Username']
-    email = data['Email']
-    password = data['Password']
-
-    existing_user = User.query.filter_by(Email=email).first()
-    if existing_user:
-        return jsonify({'message': 'Email already in use'}), 400
-
-    new_user = User(
-        Username=username,
-        Email=email,
-        Password=generate_password_hash(password),
-        user_role_id=4  # Set the user role as needed
-    )
-
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-
-        user_data = {
-            "User_ID": new_user.User_ID,
-            "Username": new_user.Username,
-            "Email": new_user.Email,
-            "Password": new_user.Password,
-            "user_role_id": new_user.user_role_id  # Include the user role in the response
-        }
-
-        return jsonify(user_data), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'message': 'Failed to create user'}), 500
-
-
-# Define the user profile route
-@app.route('/userprofile', methods=['GET'])
-@jwt_required
-def get_user_profile():
-    current_user = get_jwt_identity()
-    user = User.query.filter_by(username=current_user).first()
+        email = request.form['email']
+    data = request.get_json()
+    user = User.get_user_by_username(username=data.get('username'))
     if user:
-        user_data = {
-            'username': user.username,
-            'email': user.email,
-            # Add other user profile information here
-        }
-        return jsonify(user_data)
+        return jsonify(message="Username already exists"), 409
     else:
-        return jsonify(message="User not found"), 404
+        new_user = User(username=username, password=password, email=email)
+        new_user.save()
+        new_user.set_password(data.get('password'))
+        access_token = create_access_token(identity=new_user.username)
+        return jsonify(message="User created successfully!", access_token=access_token), 201
+
+#api to login the new or existing user           
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.get_user_by_username(username=data.get('username'))
+    if user is None:
+        return jsonify(message="Bad username or password"), 401
+    if user.check_password(data.get('password')):
+        access_token = create_access_token(identity=user.username)
+        refresh_token = create_refresh_token(identity=user.username)
+        return jsonify({
+                        "message":"Login succeeded!", 
+                        "tokens": {
+                             "access_token": access_token,
+                             "refresh_token": refresh_token
+                        }
+                        
+                        }), 200
+    return jsonify(message="Invalid username or paasword"), 401
+              
+#handling the jwt claims by seeing what token belongs to a user 
+@auth_bp.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+     return jsonify({
+          "message":"You are authorized to access this endpoint",
+          "user details": {"username": current_user.username, "email":current_user.email}
+          }), 200
+
+#api to test refresh tokens 
+@auth_bp.route('/refresh', methods=['GET'])
+@jwt_required(refresh=True)
+def refresh():
+    identity = get_jwt_identity()
+    new_access_token = create_access_token(identity=identity)
+    return jsonify({"access_token":new_access_token}), 200
+
+#api to logout a user from the system and revoke their access token
+@auth_bp.route('/logout', methods=['GET'])
+@jwt_required()
+def logout_user():
+    jwt = get_jwt()
+    jti = jwt["jti"]
+    token_type = jwt["type"]
+    token = TokenBlocklist(jti=jti)
+    token.save()
+    return jsonify({"message":f"Successfully logged out and {token_type} token revoled successfully"}), 200
+# Register the blueprint with the Flask application
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 
-#api to get all events in the platform
-@app.route('/events', methods=['GET', 'POST'])
-# @jwt_required
+#jwt decorators for protecting the various routes
+#automated userloading
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data["sub"]
+    return User.query.filter_by(username=identity).one_or_none()
+     
+#jwt error handling
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify({
+        "message": "The token has expired.",
+        "error": "token_expired"
+    }), 401
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+     return jsonify({
+        "message": "Signature verofication failed",
+        "error": "invalid_token"
+    }), 401
+
+@jwt.unauthorized_loader
+def missing_token_callback(error):
+     return jsonify({
+        "message": "Request does not contain an access token",
+        "error": "authorization_required"
+     }), 401
+
+@jwt.token_in_blocklist_loader
+def check_if_token_in_blocklist(jwt_header, jwt_data):
+    jti = jwt_data["jti"]
+    token = TokenBlocklist.query.filter_by(jti=jti).first()
+
+    return token is not None    
+
+
+# #api to get all events in the platform
+@app.route('/api/events', methods=['GET', 'POST'])
+@jwt_required()
 def events():
     if request.method == 'GET':
         events = Event.query.all()
@@ -148,6 +180,7 @@ def events():
 
 #an api to get all users in the platform
 @app.route('/users', methods=['GET'])
+@jwt_required()
 def users():
     if request.method == 'GET':
         users = User.query.all()
@@ -161,8 +194,9 @@ def users():
             } for user in users]
         return jsonify(results)
 
-#api to get a single user
+# #api to get a single user
 @app.route('/users/<user_id>', methods=['GET'])
+@jwt_required()
 def get_user(user_id):
     user = User.query.filter_by(id=user_id).first()
     if user:
@@ -177,29 +211,9 @@ def get_user(user_id):
     else:
         return make_response(jsonify(message="User Not Found"), 404)
 
-@app.route('/users', methods=['POST'])
-def create_user():
-    if request.method == 'POST':
-        data = request.json  # Get JSON data from the request
-
-        # Extract user data from the request JSON
-        username = data.get("username")
-        email = data.get("email")
-        password = data.get("password")
-        user_role_id = data.get("user_role_id")
-
-        # Perform user registration logic here
-        # Create a new User object and add it to the database
-        new_user = User(username=username, email=email, password=password, user_role_id=user_role_id)
-        db.session.add(new_user)
-        db.session.commit()
-
-        return jsonify({"message": "User registered successfully"}, 201)
-
-
-#api to be able to see all tickets in the platforms with their respective events
-@app.route('/tickets', methods=['GET', 'POST'])
-# @jwt_required
+# #api to be able to see all tickets in the platforms with their respective events
+@app.route('/tickets', methods=['GET'])
+@jwt_required()
 def tickets():
     if request.method == 'GET':
         tickets = Ticket.query.all()
@@ -214,30 +228,11 @@ def tickets():
                 "payment_method": ticket.payment_method
             } for ticket in tickets]
         return jsonify(results)
-    elif request.method == 'POST':
-        if request.is_json:
-            event_id = request.json['event_id']
-            customer_id = request.json['customer_id']
-            ticket_type = request.json['ticket_type']
-            purchase_date = request.json['purchase_date']
-            payment_status = request.json['payment_status']
-            payment_method = request.json['payment_method']
-        else:
-            event_id = request.form['event_id']
-            customer_id = request.form['customer_id']
-            ticket_type = request.form['ticket_type']
-            purchase_date = request.form['purchase_date']
-            payment_status = request.form['payment_status']
-            payment_method = request.form['payment_method']
-        ticket = Ticket.query.filter_by(event_id=event_id).first()
-        if ticket:
-            return make_response(jsonify(message="Ticket already exists"), 409)
-        else:
-            new_ticket = Ticket(event_id=event_id, customer_id=customer_id, ticket_type=ticket_type, purchase_date=purchase_date, payment_status=payment_status, payment_method=payment_method)
-            new_ticket.save()
-            return make_response(jsonify(message="Ticket created successfully!"), 201)
+        
+
 #api to get a single ticket
 @app.route('/tickets/<ticket_id>', methods=['GET'])
+@jwt_required()
 def get_ticket(ticket_id):
     ticket = Ticket.query.filter_by(id=ticket_id).first()
     if ticket:
@@ -255,8 +250,8 @@ def get_ticket(ticket_id):
         return make_response(jsonify(message="That ticket does not exist"), 404)
 
 #api to see all calender events in the platform
-# @jwt_required
 @app.route('/calendar', methods=['GET', 'POST'])
+@jwt_required()
 def calendar():
     if request.method == 'GET':
         calendar_events = EventCalendar.query.all()
@@ -285,8 +280,9 @@ def calendar():
             new_calendar_event.save()
             return make_response(jsonify(message="Event created successfully!"), 201)
 
-#api to get a single calendar event
+# #api to get a single calendar event
 @app.route('/calendar/<calendar_event_id>', methods=['GET'])
+@jwt_required()
 def get_calendar_event(calendar_event_id):
     calendar_event = EventCalendar.query.filter_by(id=calendar_event_id).first()
     if calendar_event:
@@ -302,7 +298,6 @@ def get_calendar_event(calendar_event_id):
 
 
 if __name__ == '__main__':
-    app.config['SECRET_KEY'] = '2345'
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+        app.run(debug=True)

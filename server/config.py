@@ -7,6 +7,7 @@ from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFProtect
 
+
 #load environment variables
 load_dotenv()
 
@@ -14,11 +15,15 @@ class Config():
     #DATABASE CONFIG
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-  
+    #JWT CONFIG
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+    #csrf config
+    WTF_CSRF_ENABLED = False
+    WTF_CSRF_SECRET_KEY = os.getenv('WTF_CSRF_SECRET_KEY')
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.config['SECRET_KEY'] = '2345'
+
 
 #initailize databases and migrations
 db = SQLAlchemy(app)

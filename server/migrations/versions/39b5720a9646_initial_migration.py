@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: d387262b0e95
+Revision ID: 39b5720a9646
 Revises: 
-Create Date: 2023-11-01 17:03:38.066204
+Create Date: 2023-11-06 19:13:09.175267
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd387262b0e95'
+revision = '39b5720a9646'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,6 +21,15 @@ def upgrade():
     op.create_table('roles',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('token_blocklist',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('jti', sa.String(length=255), nullable=True),
+    sa.Column('token_type', sa.String(length=255), nullable=True),
+    sa.Column('user_identity', sa.String(length=255), nullable=True),
+    sa.Column('revoked', sa.Boolean(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
@@ -78,5 +87,6 @@ def downgrade():
     op.drop_table('event_calendar')
     op.drop_table('events')
     op.drop_table('users')
+    op.drop_table('token_blocklist')
     op.drop_table('roles')
     # ### end Alembic commands ###
