@@ -56,6 +56,7 @@ class Event(db.Model):
     early_booking_price = db.Column(db.Numeric(10, 2))
     mvp_price = db.Column(db.Numeric(10, 2))
     regular_price = db.Column(db.Numeric(10, 2))
+    img = db.Column(db.String(255))
     
     def save(self):
         db.session.add(self)
