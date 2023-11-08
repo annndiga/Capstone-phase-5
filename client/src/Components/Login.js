@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import './login.css';
+import { login } from './auth';
+
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [validated, setValidated] = useState(false);
+  
+
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -13,10 +17,37 @@ const Login = () => {
     if (form.checkValidity() === false) {
       event.stopPropagation();
     } else {
-      console.log('Submitting form with:', { username, password });
+      fetch('/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log(data);
+          login(data.access_token);
+          
+        })
+        .catch((error) => {
+          console.error('There was an error logging in: ', error.message);
+        })
+        .finally(() => {
+          // Clear the form fields after the request is completed
+          setUsername('');
+          setPassword('');
+          
+        });
     }
     setValidated(true);
   };
+  
 
   return (
     <div style={{ margin: '50px auto', maxWidth: '350px' }} className='Myregistration'>
