@@ -19,6 +19,7 @@
     "react-spinners": "^0.13.8",
     "react-typed": "^1.2.0",
     "redux": "^4.2.1",
+    "styled-components": "^6.1.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

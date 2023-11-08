@@ -7,12 +7,11 @@ const UpcomingEvents = () => {
   const [filteredEvents, setFilteredEvents] = useState([]);
 
   useEffect(() => {
-   
-    fetch(``)
+    fetch('')
       .then((response) => response.json())
       .then((data) => {
         setEvents(data);
-        setFilteredEvents(data); 
+        setFilteredEvents(data);
       })
       .catch((error) => {
         console.error('Error fetching upcoming events:', error);
@@ -20,7 +19,6 @@ const UpcomingEvents = () => {
   }, []);
 
   useEffect(() => {
-    
     const filtered = events.filter((event) => {
       const nameMatch = event.eventName.toLowerCase().includes(searchQuery.toLowerCase());
       const locationMatch = event.location.toLowerCase().includes(searchQuery.toLowerCase());
@@ -32,17 +30,26 @@ const UpcomingEvents = () => {
 
   return (
     <div>
-      <h2>Upcoming Events</h2>
-      <input
-        type="text"
-        placeholder="Search by event name"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
+      <h2 style={{ textAlign: 'center' }}>Upcoming Events</h2>
 
-      <div className="slider">
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px',fontSize: '20px' }}>
+        <label style={{ marginRight: '10px' }}>Search by name:</label>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
+        <label style={{ marginLeft: '10px', marginRight: '10px' ,fontSize: '20px'}}>Search by Location:</label>
+        <input type="text"  />
+
+        <label style={{ marginLeft: '10px',fonSize:'20px' }}>Search by Date:</label>
+        <input type="date"  />
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {filteredEvents.map((event) => (
-          <div key={event.id} className="event-card">
+          <div key={event.id} className="event-card" style={{ width: '30%', margin: '10px', border: '1px solid #ccc', padding: '10px', borderRadius: '5px' }}>
             <img src={event.imageUrl} alt={event.eventName} />
             <h3>{event.eventName}</h3>
             <p>{event.startDate}</p>
@@ -52,20 +59,19 @@ const UpcomingEvents = () => {
             <p>{event.availableTickets}</p>
             <p>{event.price}</p>
             <Link to="/checkout">
-            <button
+              <button
                 style={{
-                backgroundColor: 'green',
-                color: 'white',
-                padding: '10px 20px',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
+                  backgroundColor: 'green',
+                  color: 'white',
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
                 }}
-            >
+              >
                 Book Ticket
-            </button>
+              </button>
             </Link>
-
             <Link to={`/event/${event.id}`}>View Details</Link>
           </div>
         ))}

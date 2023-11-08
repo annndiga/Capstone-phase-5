@@ -22,7 +22,7 @@ const HomePage= () => {
         <p className="hero-description">
           Monitor your data analytics to make ourselves better for you.
         </p>
-        <Link to="/Upcomingevents">
+        <Link to="/events">
           <button className="get-started-button">Get Started</button>
         </Link>
       </div>

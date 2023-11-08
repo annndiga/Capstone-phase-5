@@ -8,6 +8,7 @@ import {
   Newsletter,
   UserReviews,
   Footer,
+  Events,
   FeaturedEvents,
   UpcomingEvents,
   CreateEvent,
@@ -18,8 +19,10 @@ ReactDOM.render(
   <Router>
     <Navbar/>
     <Routes>
-      <Route path="/Homepage" element={<HomePage />} />
-      <Route path="/featured events" element={<FeaturedEvents />} />
+      <Route path="/" element={<HomePage/>} />
+      <Route path="/homepage" element={<HomePage/>} />
+      <Route path="/events" element={<Events/>} />
+      <Route path="/featuredevents" element={<FeaturedEvents />} />
       <Route path="/upcomingevents" element={<UpcomingEvents />} />
       <Route path="/createevents" element={<CreateEvent />} />
       {/* <Route path="/login" element={<Login />} /> */}

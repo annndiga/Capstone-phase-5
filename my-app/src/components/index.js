@@ -1,6 +1,7 @@
 export { default as Navbar} from "./Navbar";
 export { default as Footer } from "./Footer";
 export { default as HomePage } from "./HomePage";
+export {default as Events} from "./Events";
 export { default as FeaturedEvents } from "./FeaturedEvents";
 export { default as UpcomingEvents} from "./UpcomingEvents";
 export { default as CreateEvent } from "./CreateEvent";
