@@ -1,27 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import EventCard from './EventCard';
-import { generateJwtToken } from '../utils/jwtUtils'; // Replace with the actual import path
-
-
+// import { generateJwtToken } from '../utils/jwtUtils'; // Replace with the actual import path
 
 function EventList() {
     const [events, setEvents] = useState([]);
     const [error, setError] = useState(null);
-    const jwtSecretKey = process.env.REACT_APP_JWT_SECRET_KEY;
-
+    // const jwtSecretKey = process.env.REACT_APP_JWT_SECRET_KEY;
 
     useEffect(() => {
-        // Fetch event data from your backend (e.g., using fetch or Axios)
-        // Update the 'events' state with the fetched data
-        // You can replace this with actual API calls to your server
-
-        const token = generateJwtToken({}, jwtSecretKey);
-
+        // const jwtToken = generateJwtToken(jwtSecretKey);
         fetch('/api/events', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                
             }
         })
         .then(response => {
@@ -38,17 +30,17 @@ function EventList() {
             setError(error.message);
             console.error(error);
         });
-    }, [jwtSecretKey]);
+    }, []);
 
     return (
-        <div>
+        <div className="event-list">
             {error && <p>An error occurred: {error}</p>}
-            {events.map((event) => (
-                <EventCard key={event.id} event={event} />
-            ))}
+            <div className="card-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gridGap: '1rem', marginTop: '5rem' }}>
+                {events.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                ))}
+            </div>
         </div>
     );
 }
-
 export default EventList;
-
