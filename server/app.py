@@ -143,7 +143,8 @@ def events():
                 "total_tickets_available": event.total_tickets_available,
                 "early_booking_price": event.early_booking_price,
                 "mvp_price": event.mvp_price,
-                "regular_price": event.regular_price
+                "regular_price": event.regular_price,
+                "img": event.img
             } for event in events]
         return jsonify(results)
     elif request.method == 'POST':
@@ -159,26 +160,31 @@ def events():
             early_booking_price = request.json['early_booking_price']
             mvp_price = request.json['mvp_price']
             regular_price = request.json['regular_price']
-        else:
-            organizer_id = request.form['organizer_id']
-            event_name = request.form['event_name']
-            event_description = request.form['event_description']
-            start_date = request.form['start_date']
-            end_date = request.form['end_date']
-            location = request.form['location']
-            category = request.form['category']
-            total_tickets_available = request.form['total_tickets_available']
-            early_booking_price = request.form['early_booking_price']
-            mvp_price = request.form['mvp_price']
-            regular_price = request.form['regular_price']
-        event = Event.query.filter_by(event_name=event_name).first()
-        if event:
-            return jsonify({'message':"Event already exists"}), 409
-        else:
-            new_event = Event(organizer_id=organizer_id, event_name=event_name, event_description=event_description, start_date=start_date, end_date=end_date, location=location, category=category, total_tickets_available=total_tickets_available, early_booking_price=early_booking_price, mvp_price=mvp_price, regular_price=regular_price)
-            new_event.save()
-            return jsonify(message="Event created successfully!"), 201
+            img = request.json.get('img')  # Get the image URL from the request
 
+            # Move the query outside of the block
+            event = Event.query.filter_by(event_name=event_name).first()
+
+            if event:
+                return jsonify({'message': "Event already exists"}), 409
+            else:
+                new_event = Event(
+                    organizer_id=organizer_id,
+                    event_name=event_name,
+                    event_description=event_description,
+                    start_date=start_date,
+                    end_date=end_date,
+                    location=location,
+                    category=category,
+                    total_tickets_available=total_tickets_available,
+                    early_booking_price=early_booking_price,
+                    mvp_price=mvp_price,
+                    regular_price=regular_price,
+                    img=img
+                )
+                new_event.save()
+                return jsonify(message="Event created successfully!"), 201
+        
 
 # Existing code...
 
@@ -241,11 +247,20 @@ def get_user(user_id):
     else:
         return make_response(jsonify(message="User Not Found"), 404)
 
+# Assuming you have a route for buying tickets, update it to decrement the available tickets
 @app.route('/api/tickets/buy', methods=['POST'])
 def buy_ticket():
     data = request.get_json()
     event_id = data.get('event_id')
     ticket_type = data.get('ticket_type')
+    payment_method = data.get('payment_method')
+
+    event = Event.query.get(event_id)
+    if event:
+        event.total_tickets_available -= 1
+        db.session.commit()
+
+    return jsonify({'message': 'Ticket bought successfully'}), 200
 
     # Add any additional validation logic as needed
 

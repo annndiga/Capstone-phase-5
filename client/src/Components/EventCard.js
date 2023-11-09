@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
-import BuyTicketForm from './BuyTicket';  // Import your BuyTicketForm component
+import BuyTicketForm from './BuyTicket';  
 
 function EventCard({ event }) {
   const [showBuyForm, setShowBuyForm] = useState(false);
@@ -57,6 +57,11 @@ function EventCard({ event }) {
               <p>Early Booking Price: ${early_booking_price}</p>
               <p>MVP Price: ${mvp_price}</p>
               <p>Regular Price: ${regular_price}</p>
+
+              {/* Place the "Buy Now" button here */}
+              <Button variant="danger" onClick={handleBuyNow}>
+                Buy Now
+              </Button>
             </>
           )}
         </Card.Text>
@@ -65,9 +70,6 @@ function EventCard({ event }) {
             {showDetails ? 'Hide Details' : 'View Details'}
           </Button>
         </Link>
-        <Button variant="danger" onClick={handleBuyNow}>
-          Buy Now
-        </Button>
         {showBuyForm && <BuyTicketForm eventId={id} setShowBuyForm={setShowBuyForm} />}
       </Card.Body>
     </Card>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
 
-const BuyTicketForm = ({ eventId, onPurchase }) => {
+const BuyTicketForm = ({ eventId, onPurchase, updateAvailableTickets }) => {
   const [ticketType, setTicketType] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [errors, setErrors] = useState({});

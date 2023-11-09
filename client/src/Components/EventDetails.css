@@ -1,0 +1,42 @@
+/* EventDetails.css */
+
+.event-details-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .event-details-container h2 {
+    color: #333;
+  }
+  
+  .event-details-info {
+    margin-top: 15px;
+  }
+  
+  .event-details-info p {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #555;
+  }
+  
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+  }
+  
+  body {
+    background-image: url('https://img.freepik.com/premium-photo/abstract-modern-dark-with-rays-lines_129911-908.jpg?size=626&ext=jpg&ga=GA1.1.1826414947.1699056000&semt=ais');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    font-family: 'Your Preferred Font', sans-serif; /* Add your preferred font-family */
+    /* Add additional styles as needed */
+  }

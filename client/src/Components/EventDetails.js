@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import './EventDetails.css';
+import BuyTicketForm from './BuyTicket'; 
+
+const formatDate = (dateString) => {
+  // Implement your date formatting logic here
+  // For example, you can use the Date object methods
+  const date = new Date(dateString);
+  return date.toLocaleDateString();
+};
 
 function EventDetails() {
   const { eventId } = useParams();
   const [eventDetails, setEventDetails] = useState(null);
+  const [showBuyForm, setShowBuyForm] = useState(false);
 
   useEffect(() => {
     // Fetch event details using the eventId
@@ -24,27 +34,61 @@ function EventDetails() {
       });
   }, [eventId]);
 
+  const updateAvailableTickets = () => {
+    // Fetch the updated event details after a ticket is bought
+    fetch(`/api/events/${eventId}`)
+      .then(response => response.json())
+      .then(data => {
+        setEventDetails(data);
+      })
+      .catch(error => {
+        console.error(error);
+        // Handle error, e.g., set an error state
+      });
+  };
+
+  const handleBuyNow = () => {
+    // Toggle the visibility of the buy ticket form
+    setShowBuyForm(!showBuyForm);
+  };
+
   return (
-    <div>
+    <div className="event-details-container">
       <h2>Event Details</h2>
       {eventDetails ? (
-        <div>
+        <div className="event-details-info">
           <p>Event ID: {eventDetails.id}</p>
           <p>Organizer ID: {eventDetails.organizer_id}</p>
           <p>Event Name: {eventDetails.event_name}</p>
           <p>Event Description: {eventDetails.event_description}</p>
-          <p>Start Date: {eventDetails.start_date}</p>
-          <p>End Date: {eventDetails.end_date}</p>
+          <p>Start Date: {formatDate(eventDetails.start_date)}</p>
+          <p>End Date: {formatDate(eventDetails.end_date)}</p>
           <p>Location: {eventDetails.location}</p>
           <p>Category: {eventDetails.category}</p>
           <p>Total Tickets Available: {eventDetails.total_tickets_available}</p>
-          <p>Early Booking Price: {eventDetails.early_booking_price}</p>
-          <p>MVP Price: {eventDetails.mvp_price}</p>
-          <p>Regular Price: {eventDetails.regular_price}</p>
+          <p>Early Booking Price: ${Number(eventDetails.early_booking_price).toFixed(2)}</p>
+          <p>MVP Price: ${Number(eventDetails.mvp_price).toFixed(2)}</p>
+          <p>Regular Price: ${Number(eventDetails.regular_price).toFixed(2)}</p>
+
+          {/* "Buy Now" button */}
+          <button onClick={handleBuyNow}>Buy Now</button>
+
+          {/* Render the BuyTicketForm based on visibility state */}
+          {showBuyForm && (
+            <BuyTicketForm
+              eventId={eventId}
+              onPurchase={() => setShowBuyForm(false)}
+              updateAvailableTickets={updateAvailableTickets}
+            />
+          )}
+
           {/* Add more details based on the fetched data */}
         </div>
       ) : (
-        <p>Loading...</p>
+        <div className="loading-spinner">
+          {/* Use your preferred loading spinner component here */}
+          Loading...
+        </div>
       )}
     </div>
   );
