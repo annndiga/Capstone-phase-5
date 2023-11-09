@@ -127,7 +127,6 @@ def check_if_token_in_blocklist(jwt_header, jwt_data):
 
 # #api to get all events in the platform
 @app.route('/api/events', methods=['GET', 'POST'])
-# @jwt_required()
 def events():
     if request.method == 'GET':
         events = Event.query.all()
@@ -179,6 +178,35 @@ def events():
             new_event = Event(organizer_id=organizer_id, event_name=event_name, event_description=event_description, start_date=start_date, end_date=end_date, location=location, category=category, total_tickets_available=total_tickets_available, early_booking_price=early_booking_price, mvp_price=mvp_price, regular_price=regular_price)
             new_event.save()
             return jsonify(message="Event created successfully!"), 201
+
+
+# Existing code...
+
+@app.route('/api/events/<int:eventId>', methods=['GET'])
+# @jwt_required()
+def get_event_by_id(event_id):
+    event = Event.query.get(event_id)
+
+    if not event:
+        return jsonify({'message': 'Event not found'}), 404
+
+    result = {
+        "id": event.id,
+        "organizer_id": event.organizer_id,
+        "event_name": event.event_name,
+        "event_description": event.event_description,
+        "start_date": event.start_date,
+        "end_date": event.end_date,
+        "location": event.location,
+        "category": event.category,
+        "total_tickets_available": event.total_tickets_available,
+        "early_booking_price": event.early_booking_price,
+        "mvp_price": event.mvp_price,
+        "regular_price": event.regular_price,
+        "img": event.img
+    }
+    
+    return jsonify(result), 200
 
 #an api to get all users in the platform
 @app.route('/api/users', methods=['GET'])

@@ -1,16 +1,11 @@
-// BuyTicketForm.js
-
 import React, { useState } from 'react';
 import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
-import { Link } from 'react-router-dom'; // Import Link from react-router-dom
 
 const BuyTicketForm = ({ eventId, onPurchase }) => {
   const [ticketType, setTicketType] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
-  const [ticketId, setTicketId] = useState(null); // Initialize ticketId with null
 
   // Updated ticketTypes and paymentMethods arrays
   const ticketTypes = ['MVP', 'Regular', 'Early Booking'];
@@ -41,8 +36,6 @@ const BuyTicketForm = ({ eventId, onPurchase }) => {
         .then((res) => res.json())
         .then((data) => {
           alert(data.message);
-          setPurchaseSuccess(true); // Set purchaseSuccess to true
-          setTicketId(data.ticketId); // Set the ticketId from the response
           onPurchase(); // Trigger any necessary action after a successful purchase
         })
         .catch((err) => console.log(err))
@@ -64,7 +57,28 @@ const BuyTicketForm = ({ eventId, onPurchase }) => {
 
   return (
     <Form onSubmit={handleSubmit}>
-      {/* ... (previous form fields) */}
+      <FormGroup>
+        <Label for="ticketType">Ticket Type</Label>
+        <Input
+          type="select"
+          name="ticketType"
+          id="ticketType"
+          value={ticketType}
+          onChange={(e) => setTicketType(e.target.value)}
+        >
+          <option value="" disabled>
+            Select Ticket Type
+          </option>
+          {ticketTypes.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </Input>
+        {errors.ticketType && (
+          <Alert color="danger">{errors.ticketType}</Alert>
+        )}
+      </FormGroup>
       <FormGroup>
         <Label for="paymentMethod">Payment Method</Label>
         <Input
@@ -74,7 +88,14 @@ const BuyTicketForm = ({ eventId, onPurchase }) => {
           value={paymentMethod}
           onChange={(e) => setPaymentMethod(e.target.value)}
         >
-          {/* ... (previous options) */}
+          <option value="" disabled>
+            Select Payment Method
+          </option>
+          {paymentMethods.map((method) => (
+            <option key={method} value={method}>
+              {method}
+            </option>
+          ))}
         </Input>
         {errors.paymentMethod && (
           <Alert color="danger">{errors.paymentMethod}</Alert>
@@ -83,16 +104,6 @@ const BuyTicketForm = ({ eventId, onPurchase }) => {
       <Button color="primary" type="submit" disabled={isSubmitting}>
         Buy Ticket
       </Button>
-
-      {/* Display the link after a successful purchase */}
-      {purchaseSuccess && (
-        <div>
-          <p>Congratulations! You've successfully purchased a ticket.</p>
-          <Link to={`/tickets/receipt/${ticketId}`} target="_blank" download>
-            Download Receipt
-          </Link>
-        </div>
-      )}
     </Form>
   );
 };
