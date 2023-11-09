@@ -7,11 +7,6 @@ import os
 
 auth_bp = Blueprint('auth', __name__)
 
-@app.route('/')
-def home():
-    return 'Welcome to the Event Management System!'
-
-
 
 # Define the routes for the auth_bp blueprint here
 #api to register a new user
@@ -30,9 +25,9 @@ def register():
     if user:
         return jsonify(message="Username already exists"), 409
     else:
-        new_user = User(username=username, password=password, email=email)
-        new_user.save()
+        new_user = User(username=username, password=password, email=email)       
         new_user.set_password(data.get('password'))
+        new_user.save()
         access_token = create_access_token(identity=new_user.username)
         return jsonify(message="User created successfully!", access_token=access_token), 201
 
@@ -43,7 +38,7 @@ def login():
     user = User.get_user_by_username(username=data.get('username'))
     if user is None:
         return jsonify(message="Bad username or password"), 401
-    if user.check_password(data.get('password')):
+    if user and (user.check_password(data.get('password'))):
         access_token = create_access_token(identity=user.username)
         refresh_token = create_refresh_token(identity=user.username)
         return jsonify({
@@ -66,7 +61,7 @@ def protected():
           }), 200
 
 #api to test refresh tokens 
-@auth_bp.route('/refresh', methods=['GET'])
+@auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
     identity = get_jwt_identity()
@@ -120,12 +115,26 @@ def check_if_token_in_blocklist(jwt_header, jwt_data):
     jti = jwt_data["jti"]
     token = TokenBlocklist.query.filter_by(jti=jti).first()
 
-    return token is not None    
+    return token is not None
 
+#additional claims for any access control duties such as ADMIN
+# @jwt.additional_claims_loader
+# def make_additioanl_claims(identity):
+#     user = User.get_user_by_username(username=identity)
+#     return {
+#         "role": user.role.name
+#     }    
+
+
+
+
+@app.route('/home')
+def home():
+    return 'Welcome to the Event Management System!'
 
 # #api to get all events in the platform
 @app.route('/api/events', methods=['GET', 'POST'])
-@jwt_required()
+# @jwt_required()
 def events():
     if request.method == 'GET':
         events = Event.query.all()
@@ -179,7 +188,7 @@ def events():
             return jsonify(message="Event created successfully!"), 201
 
 #an api to get all users in the platform
-@app.route('/users', methods=['GET'])
+@app.route('/api/users', methods=['GET'])
 @jwt_required()
 def users():
     if request.method == 'GET':
@@ -195,7 +204,7 @@ def users():
         return jsonify(results)
 
 # #api to get a single user
-@app.route('/users/<user_id>', methods=['GET'])
+@app.route('/api/users/<user_id>', methods=['GET'])
 @jwt_required()
 def get_user(user_id):
     user = User.query.filter_by(id=user_id).first()
@@ -212,7 +221,7 @@ def get_user(user_id):
         return make_response(jsonify(message="User Not Found"), 404)
 
 # #api to be able to see all tickets in the platforms with their respective events
-@app.route('/tickets', methods=['GET'])
+@app.route('/api/tickets', methods=['GET'])
 @jwt_required()
 def tickets():
     if request.method == 'GET':
@@ -231,7 +240,7 @@ def tickets():
         
 
 #api to get a single ticket
-@app.route('/tickets/<ticket_id>', methods=['GET'])
+@app.route('/api/tickets/<ticket_id>', methods=['GET'])
 @jwt_required()
 def get_ticket(ticket_id):
     ticket = Ticket.query.filter_by(id=ticket_id).first()
@@ -250,7 +259,7 @@ def get_ticket(ticket_id):
         return make_response(jsonify(message="That ticket does not exist"), 404)
 
 #api to see all calender events in the platform
-@app.route('/calendar', methods=['GET', 'POST'])
+@app.route('/api/calendar', methods=['GET', 'POST'])
 @jwt_required()
 def calendar():
     if request.method == 'GET':
@@ -281,7 +290,7 @@ def calendar():
             return make_response(jsonify(message="Event created successfully!"), 201)
 
 # #api to get a single calendar event
-@app.route('/calendar/<calendar_event_id>', methods=['GET'])
+@app.route('/api/calendar/<calendar_event_id>', methods=['GET'])
 @jwt_required()
 def get_calendar_event(calendar_event_id):
     calendar_event = EventCalendar.query.filter_by(id=calendar_event_id).first()

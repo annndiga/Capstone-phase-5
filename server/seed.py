@@ -71,3 +71,4 @@ with app.app_context():
             create_events()
             create_tickets()
             create_event_calendar()            
+

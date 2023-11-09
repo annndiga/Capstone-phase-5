@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import './login.css';
-import { login } from './auth';
+// import { login } from './auth';
 
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [validated, setValidated] = useState(false);
+  const navigate = useNavigate();
   
 
 
@@ -32,7 +34,10 @@ const Login = () => {
         })
         .then((data) => {
           console.log(data);
-          login(data.access_token);
+          // login(data.access_token);
+          localStorage.setItem('token', data.access_token);
+          navigate('/');
+          
           
         })
         .catch((error) => {
