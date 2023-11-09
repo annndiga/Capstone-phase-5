@@ -26,17 +26,18 @@ with app.app_context():
     def create_events():
         for _ in range(10):  # Create 10 events
             event = Event(
-                organizer_id=fake.random_int(min=1, max=10),  # Assuming user IDs start from 1 and go up to 10
-                event_name=fake.word(),
-                event_description=fake.text(),
-                start_date=fake.date_time_between(start_date="-30d", end_date="+30d"),
-                end_date=fake.date_time_between(start_date="+31d", end_date="+60d"),
-                location=fake.city(),
-                category=fake.word(),
-                total_tickets_available=fake.random_int(min=100, max=1000),
-                early_booking_price=fake.random_element(elements=(10.0, 20.0, 30.0)),
-                mvp_price=fake.random_element(elements=(40.0, 50.0, 60.0)),
-                regular_price=fake.random_element(elements=(70.0, 80.0, 90.0))
+            organizer_id=fake.random_int(min=1, max=10),  # Assuming user IDs start from 1 and go up to 10
+            event_name=fake.word(),
+            event_description=fake.text(),
+            start_date=fake.date_time_between(start_date="-30d", end_date="+30d"),
+            end_date=fake.date_time_between(start_date="+31d", end_date="+60d"),
+            location=fake.city(),
+            category=fake.word(),
+            total_tickets_available=fake.random_int(min=100, max=1000),
+            early_booking_price=fake.random_element(elements=(10.0, 20.0, 30.0)),
+            mvp_price=fake.random_element(elements=(40.0, 50.0, 60.0)),
+            regular_price=fake.random_element(elements=(70.0, 80.0, 90.0)),
+            img=fake.image_url(width=640, height=480)
             )
             db.session.add(event)
         db.session.commit()
@@ -71,4 +72,3 @@ with app.app_context():
             create_events()
             create_tickets()
             create_event_calendar()            
-

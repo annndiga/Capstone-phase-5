@@ -1,11 +1,19 @@
-from flask import Flask, request, jsonify, make_response, redirect, url_for,render_template,Blueprint
+from flask import Flask, request, jsonify, make_response, redirect, url_for,render_template,Blueprint,send_file
 from Backend.models import User, Event, Ticket, EventCalendar, Role, TokenBlocklist
 from config import db, app, csrf,jwt
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required,create_refresh_token, get_jwt,current_user
-import datetime
+from datetime import datetime
+from flask_restful import Api, Resource
+from io import BytesIO
+from reportlab.pdfgen import canvas
 import os
 
+
 auth_bp = Blueprint('auth', __name__)
+
+@app.route('/home')
+def home():
+    return 'Welcome to the Event Management System!'
 
 
 # Define the routes for the auth_bp blueprint here
@@ -117,21 +125,6 @@ def check_if_token_in_blocklist(jwt_header, jwt_data):
 
     return token is not None
 
-#additional claims for any access control duties such as ADMIN
-# @jwt.additional_claims_loader
-# def make_additioanl_claims(identity):
-#     user = User.get_user_by_username(username=identity)
-#     return {
-#         "role": user.role.name
-#     }    
-
-
-
-
-@app.route('/home')
-def home():
-    return 'Welcome to the Event Management System!'
-
 # #api to get all events in the platform
 @app.route('/api/events', methods=['GET', 'POST'])
 # @jwt_required()
@@ -220,9 +213,31 @@ def get_user(user_id):
     else:
         return make_response(jsonify(message="User Not Found"), 404)
 
+@app.route('/api/tickets/buy', methods=['POST'])
+def buy_ticket():
+    data = request.get_json()
+    event_id = data.get('event_id')
+    ticket_type = data.get('ticket_type')
+
+    # Add any additional validation logic as needed
+
+    # Assuming you have a User model with an 'id' field
+    new_ticket = Ticket(
+        event_id=event_id,
+        customer_id=None,  # Replace this with the actual user ID or leave it as None for testing
+        ticket_type=ticket_type,
+        purchase_date=datetime.utcnow(),
+        payment_status="Pending",  # You can set an initial status
+        payment_method=data.get('payment_method')
+    )
+
+    db.session.add(new_ticket)
+    db.session.commit()
+
+    return jsonify(message="Ticket purchased successfully"), 201
+
 # #api to be able to see all tickets in the platforms with their respective events
 @app.route('/api/tickets', methods=['GET'])
-@jwt_required()
 def tickets():
     if request.method == 'GET':
         tickets = Ticket.query.all()
@@ -305,6 +320,85 @@ def get_calendar_event(calendar_event_id):
     else:
         return make_response(jsonify(message="That calendar event does not exist"), 404)
 
+# Assuming you have a Flask app and an Api instance
+api = Api(app)
+
+# API resource to get tickets for the current user
+class UserTicketsResource(Resource):
+    @jwt_required()
+    def get(self):
+        current_user_id = get_jwt_identity()
+        tickets = Ticket.query.filter_by(customer_id=current_user_id).all()
+
+        results = [
+            {
+                "id": ticket.id,
+                "event_id": ticket.event_id,
+                "ticket_type": ticket.ticket_type,
+                "purchase_date": ticket.purchase_date.strftime('%Y-%m-%d %H:%M:%S'),
+                "payment_status": ticket.payment_status,
+                "payment_method": ticket.payment_method
+            } for ticket in tickets
+        ]
+
+        return results
+
+# API resource to get a PDF receipt for a specific ticket
+# Update the TicketReceiptResource class
+class TicketReceiptResource(Resource):
+    @jwt_required()
+    def get(self, ticket_id):
+        # Redirect the user to the download route
+        return redirect(url_for('download_receipt', ticket_id=ticket_id))
+
+
+        # Generate PDF receipt
+        pdf_bytes = generate_pdf(ticket)
+
+        # Create a response with the PDF content
+        response = make_response(pdf_bytes)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'inline; filename=ticket_receipt_{ticket.id}.pdf'
+
+        return response
+@app.route('/api/tickets/receipt/<int:ticket_id>/download', methods=['GET'])
+@jwt_required()
+def download_receipt(ticket_id):
+    current_user_id = get_jwt_identity()
+    ticket = Ticket.query.filter_by(id=ticket_id, customer_id=current_user_id).first()
+
+    if not ticket:
+        return jsonify(message="Ticket not found"), 404
+
+    pdf_bytes = generate_pdf(ticket)
+
+    # Create a response with the PDF content
+    response = make_response(pdf_bytes)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=ticket_receipt_{ticket.id}.pdf'
+
+    return response
+
+
+def generate_pdf(ticket):
+    buffer = BytesIO()
+
+    # Use ReportLab to generate a simple PDF receipt
+    p = canvas.Canvas(buffer)
+    p.drawString(100, 800, f"Ticket Receipt for Event {ticket.event_id}")
+    p.drawString(100, 780, f"Ticket ID: {ticket.id}")
+    p.drawString(100, 760, f"Ticket Type: {ticket.ticket_type}")
+    p.drawString(100, 740, f"Purchase Date: {ticket.purchase_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    p.drawString(100, 720, f"Payment Status: {ticket.payment_status}")
+    p.drawString(100, 700, f"Payment Method: {ticket.payment_method}")
+    p.save()
+
+    buffer.seek(0)
+    return buffer.read()
+
+# Add the resources to the API
+api.add_resource(UserTicketsResource, '/api/user/tickets')
+api.add_resource(TicketReceiptResource, '/api/tickets/receipt/<int:ticket_id>')
 
 if __name__ == '__main__':
     with app.app_context():

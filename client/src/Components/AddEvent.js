@@ -17,6 +17,8 @@ const AddEvent = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState({});
     const [events, setEvents] = useState([]);
+    const [img, setImg] = useState('');
+
 
     useEffect(() => {
         fetch('/api/events')
@@ -44,6 +46,7 @@ const AddEvent = () => {
                     early_booking_price,
                     mvp_price,
                     regular_price,
+                    img,
                 }),
             })
                 .then((res) => res.json())
@@ -190,8 +193,11 @@ const AddEvent = () => {
             case 'regular_price':
                 setRegularPrice(value);
                 break;
-            default:
+            case 'img':
+                setImg(value);
                 break;
+            default:
+                    break;  
         }
     };
 
@@ -347,6 +353,18 @@ const AddEvent = () => {
                                     />
                                     {errors.regular_price && <Alert className="alert-message" color="danger">{errors.regular_price}</Alert>}
                                 </FormGroup>
+                                <FormGroup className="form-group">
+                                    <Label className="form-label" for="img">Image URL</Label>
+                                    <Input
+                                        className="form-control"
+                                        type="text"
+                                        name="img"
+                                        id="img"
+                                        value={img}
+                                        onChange={handleChange}
+                                    />
+                                    {errors.img && <Alert className="alert-message" color="danger">{errors.img}</Alert>}
+                                </FormGroup>
                                 <Button className="register-button" color="primary" onClick={handleSubmit}>
                                     Add Event
                                 </Button>
@@ -396,4 +414,3 @@ const AddEvent = () => {
 };
 
 export default AddEvent;
-
