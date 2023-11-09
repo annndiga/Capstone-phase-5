@@ -182,7 +182,7 @@ def events():
 
 # Existing code...
 
-@app.route('/api/events/<int:eventId>', methods=['GET'])
+@app.route('/api/events/<int:event_id>', methods=['GET'])
 # @jwt_required()
 def get_event_by_id(event_id):
     event = Event.query.get(event_id)

@@ -7,7 +7,7 @@ function EventDetails() {
 
   useEffect(() => {
     // Fetch event details using the eventId
-    fetch(`'/api/events/<int:eventId>'`)
+    fetch(`/api/events/${eventId}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
