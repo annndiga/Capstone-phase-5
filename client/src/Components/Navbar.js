@@ -40,7 +40,7 @@ function TheNav({ onSearch }) {
         <Navbar.Collapse id="navbarScroll">
           <Nav className="me-auto my-2 my-lg-0" style={{ maxHeight: '100px' }} navbarScroll>
             <Nav.Link href="/">Home</Nav.Link>
-            <Nav.Link href="/about us">About Us</Nav.Link>
+            <Nav.Link href="/about-us">About Us</Nav.Link>
             <NavDropdown title="Events" id="navbarScrollingDropdown">
               <NavDropdown.Item href="/events">Events</NavDropdown.Item>
               <NavDropdown.Item href="/addevent">Add Event</NavDropdown.Item>
@@ -57,18 +57,6 @@ function TheNav({ onSearch }) {
               aria-label="Search"
               onChange={handleSearchChange}
             />
-            <Form.Control
-              type="text"
-              placeholder="Location"
-              className="me-2"
-              onChange={handleLocationChange}
-            />
-            <Form.Control
-              type="text"
-              placeholder="Category"
-              className="me-2"
-              onChange={handleCategoryChange}
-            />
             <Button variant="outline-success" type="submit">
               Search
             </Button>
@@ -76,6 +64,7 @@ function TheNav({ onSearch }) {
         </Navbar.Collapse>
       </Container>
     </Navbar>
+    
   );
 }
 

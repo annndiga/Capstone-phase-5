@@ -6,6 +6,7 @@ import Login from './Components/Login';
 import EventList from './Components/EventList';
 import AddEvent from './Components/AddEvent';
 import EventDetails from './Components/EventDetails';
+import AboutUs from './Components/AboutUs';
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
         <Route path="/events" element={<EventList/>} />
         <Route path="/addevent" element={<AddEvent/>} />
         <Route path="/events/:eventId" element={<EventDetails />} />
-
+        <Route path="/about-us" element={<AboutUs />} /> {/* Add the About Us route */}
       </Routes>
     </div>
   );

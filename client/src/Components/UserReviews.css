@@ -1,0 +1,49 @@
+.user-reviews-container {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .review-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  
+  .circle-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ccc;
+  }
+  
+  .circle-image img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+  
+  .username {
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  
+  .comment {
+    margin: 10px 0;
+  }
+  .user-reviews-container {
+    margin-top: 30px; /* Adjust the margin as needed */
+    text-align: center;
+  }
+  
+  .welcome-text {
+    margin-bottom: 20px; /* Add margin to the bottom of the welcome text */
+  }
+  
+  .reviews-heading {
+    margin-top: 20px; /* Add margin to the top of the reviews heading */
+  }

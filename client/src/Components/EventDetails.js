@@ -14,6 +14,7 @@ function EventDetails() {
   const { eventId } = useParams();
   const [eventDetails, setEventDetails] = useState(null);
   const [showBuyForm, setShowBuyForm] = useState(false);
+  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     // Fetch event details using the eventId
@@ -50,6 +51,10 @@ function EventDetails() {
   const handleBuyNow = () => {
     // Toggle the visibility of the buy ticket form
     setShowBuyForm(!showBuyForm);
+  };
+
+  const addToCart = (ticket) => {
+    setCart([...cart, ticket]);
   };
 
   return (

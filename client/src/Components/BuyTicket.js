@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
 
-const BuyTicketForm = ({ eventId, onPurchase, updateAvailableTickets }) => {
+const BuyTicketForm = ({ eventId, onPurchase, updateAvailableTickets, addToCart }) => {
   const [ticketType, setTicketType] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [errors, setErrors] = useState({});
@@ -36,7 +36,9 @@ const BuyTicketForm = ({ eventId, onPurchase, updateAvailableTickets }) => {
         .then((res) => res.json())
         .then((data) => {
           alert(data.message);
-          onPurchase(); // Trigger any necessary action after a successful purchase
+          onPurchase();
+          updateAvailableTickets();
+          addToCart({ eventId, ticketType }); 
         })
         .catch((err) => console.log(err))
         .finally(() => setIsSubmitting(false));
