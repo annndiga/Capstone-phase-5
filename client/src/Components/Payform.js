@@ -39,7 +39,7 @@ function Payform() {
               </Form.Group>
 
               <Form.Group controlId="formBasicPassword">
-                  <Link to="/enents" style={{ textDecoration: 'none', display: 'block', marginTop: '10px' }}>
+                  <Link to="/events" style={{ textDecoration: 'none', display: 'block', marginTop: '10px' }}>
                       Already have made payment? return to events.
                   </Link>
               </Form.Group>

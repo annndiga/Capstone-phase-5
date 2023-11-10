@@ -42,7 +42,7 @@ function EventCard({ event }) {
           <p>Regular Price: ${regular_price}</p>
         </Card.Text>
         <Button variant="primary">View Details</Button>
-        <Button variant="danger">Buy Now</Button>
+        <Button variant="danger" onClick={() => window.location.href = '/pay'}>Buy Now</Button>
       </Card.Body>
     </Card>
   );
