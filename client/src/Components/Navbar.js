@@ -47,7 +47,7 @@ function TheNav({ onSearch }) {
               <NavDropdown.Divider />
               <NavDropdown.Item href="#action5">payment</NavDropdown.Item>
             </NavDropdown>
-            <Nav.Link href="#">contact us</Nav.Link>
+            <Nav.Link href="/contact-us">contact us</Nav.Link>
           </Nav>
           <Form onSubmit={handleSearchSubmit} className="d-flex">
             <Form.Control

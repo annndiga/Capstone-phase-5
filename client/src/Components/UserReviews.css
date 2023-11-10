@@ -1,6 +1,8 @@
 .user-reviews-container {
     text-align: center;
     padding: 20px;
+    background-color: black; /* Set the background color to black */
+  color: white; 
   }
   
   .review-item {

@@ -6,7 +6,7 @@ import {
   FaInstagram,
   FaTwitterSquare,
 } from "react-icons/fa";
-import "../styles/Footer.css";
+import "./Contact.css";
 
 
 const Footer = () => {

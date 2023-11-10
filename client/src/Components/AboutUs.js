@@ -45,9 +45,9 @@ const UserReviews = () => {
   return (
     <div className="user-reviews-container">
       <div className="welcome-text">
-        <p style={{ color: 'red' }}>Welcome to User Reviews! Discover what our users have to say about Tiketi Tamasha.</p>
-        <p style={{ color: 'red' }}>Our mission is to connect event organizers with enthusiastic attendees, creating memorable experiences for everyone.</p>
-        <p style={{ color: 'red' }}>Explore a wide range of events, from concerts and workshops to conferences and more. Join us in the world of entertainment!</p>
+        <p style={{ color: 'white' }}>Welcome to User Reviews! Discover what our users have to say about Tiketi Tamasha.</p>
+        <p style={{ color: 'white' }}>Our mission is to connect event organizers with enthusiastic attendees, creating memorable experiences for everyone.</p>
+        <p style={{ color: 'white' }}>Explore a wide range of events, from concerts and workshops to conferences and more. Join us in the world of entertainment!</p>
       </div>
 
       <h2 className="reviews-heading" style={{ color: 'red' }}>User Reviews</h2>
