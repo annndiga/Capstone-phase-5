@@ -17,13 +17,13 @@ function TheNav() {
           <Nav className="me-auto my-2 my-lg-0" style={{ maxHeight: '100px' }} navbarScroll>
           <Nav.Link href="/">Home</Nav.Link>
         
-        <Nav.Link href="/about us">About Us</Nav.Link>
+        <Nav.Link href="/aboutus">About Us</Nav.Link>
         <NavDropdown title="Events" id="navbarScrollingDropdown">
         <NavDropdown.Item href="/events">Events</NavDropdown.Item>
         <NavDropdown.Item href="/addevent ">Add Event
         </NavDropdown.Item>
         <NavDropdown.Divider />
-        <NavDropdown.Item href="#action5">payment</NavDropdown.Item>
+        <NavDropdown.Item href="/pay">payment</NavDropdown.Item>
       </NavDropdown>
       <Nav.Link href="#">contact us</Nav.Link>
           </Nav>

@@ -1,0 +1,22 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Set the height of the body to the full viewport height */
+}
+
+.aboutus-container {
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    text-align: center; /* Center the content horizontally */
+    max-width: 600px; /* Limit the width of the container */
+}
+
+.red-text {
+    color: red; /* Style the red span with red color */
+}
+
+.blue-text {
+    color: blue; /* Style the blue span with blue color */
+}

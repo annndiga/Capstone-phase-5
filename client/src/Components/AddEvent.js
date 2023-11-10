@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
 import './AddEvent.css'; 
+// import 'toastr/build/toastr.min.css';
 
 const AddEvent = () => {
     const [organizer_id, setOrganizerId] = useState('');
@@ -201,7 +202,7 @@ const AddEvent = () => {
             <Form onSubmit={handleSubmit}>
                 <FormGroup>
                         <div className="add-event-form">
-                            <h1>Add Event</h1>
+                            <h1>ADD EVENT</h1>
                             <Form onSubmit={handleSubmit}>
                                 <FormGroup className="form-group">
                                     <Label className="form-label" for="organizer_id">Organizer ID</Label>

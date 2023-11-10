@@ -35,7 +35,7 @@ function EventList() {
     return (
         <div className="event-list">
             {error && <p>An error occurred: {error}</p>}
-            <div className="card-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gridGap: '1rem', marginTop: '5rem' }}>
+            <div className="card-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gridGap: '1rem', marginTop:'65rem' }}>
                 {events.map((event) => (
                     <EventCard key={event.id} event={event} />
                 ))}

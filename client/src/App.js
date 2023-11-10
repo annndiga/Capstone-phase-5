@@ -5,6 +5,8 @@ import Home from './Components/Home';
 import Login from './Components/Login';
 import EventList from './Components/EventList';
 import AddEvent from './Components/AddEvent';
+import Aboutus from './Components/Aboutus';
+import Payform from './Components/Payform';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
         <Route path="/register" element={<RegistrationForm />} />
         <Route path="/events" element={<EventList/>} />
         <Route path="/addevent" element={<AddEvent/>} />
+        <Route path="/aboutus" element={<Aboutus/>} />
+        <Route path="/pay" element={<Payform/>} />
 
       </Routes>
     </div>
