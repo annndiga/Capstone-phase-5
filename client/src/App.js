@@ -8,6 +8,8 @@ import AddEvent from './Components/AddEvent';
 import EventDetails from './Components/EventDetails';
 import AboutUs from './Components/AboutUs';
 import Contact from './Components/Contact';
+import Payform from './Components/Payform';
+
 
 function App() {
   return (
@@ -22,6 +24,7 @@ function App() {
         <Route path="/events/:eventId" element={<EventDetails />} />
         <Route path="/about-us" element={<AboutUs />} /> {/* Add the About Us route */}
         <Route path="/contact-us" element={<Contact />} /> {/* Add the About Us route */}
+        <Route path="/pay" element={<Payform />} /> {/* Add the About Us route */}
       </Routes>
     </div>
   );

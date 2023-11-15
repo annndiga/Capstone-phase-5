@@ -45,7 +45,7 @@ function TheNav({ onSearch }) {
               <NavDropdown.Item href="/events">Events</NavDropdown.Item>
               <NavDropdown.Item href="/addevent">Add Event</NavDropdown.Item>
               <NavDropdown.Divider />
-              <NavDropdown.Item href="#action5">payment</NavDropdown.Item>
+              <NavDropdown.Item href="/pay">payment</NavDropdown.Item>
             </NavDropdown>
             <Nav.Link href="/contact-us">contact us</Nav.Link>
           </Nav>
